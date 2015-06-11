@@ -7,7 +7,6 @@ import play.api.libs.json._
 
 import scala.collection.Seq
 
-// TODO: Extract as separate library
 sealed trait JsonRpcMessage
 
 object JsonRpcMessage {
