@@ -4,6 +4,8 @@ organization := "com.dhpcs"
 
 version := "0.1.0-SNAPSHOT"
 
+publishArtifact in Test := true
+
 scalaVersion := "2.11.6"
 
 libraryDependencies ++= Seq(
