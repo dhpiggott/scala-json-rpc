@@ -5,6 +5,7 @@ package com.dhpcs.jsonrpc
 
 import play.api.data.validation.ValidationError
 import play.api.libs.functional.syntax._
+import play.api.libs.json.Json.JsValueWrapper
 import play.api.libs.json.Reads._
 import play.api.libs.json._
 
@@ -116,91 +117,74 @@ object JsonRpcResponseError {
   private def build(code: Int,
                     message: String,
                     meaning: String,
-                    error: Option[JsValue],
-                    jsObjectBuilder: Seq[(String, JsValue)] => JsObject) = JsonRpcResponseError(
+                    error: Option[JsValue]) = JsonRpcResponseError(
     code,
     message,
     Some(
-      jsObjectBuilder(
-        ("meaning" -> JsString(meaning)) ::
-          error.fold[List[(String, JsValue)]](Nil)(
+      Json.obj(
+        ("meaning" -> meaning: (String, JsValueWrapper)) ::
+          error.fold[List[(String, JsValueWrapper)]](Nil)(
             error => List("error" -> error)
-          )
+          ): _*
       )
     )
   )
 
-  def parseError(exception: Throwable,
-                 jsObjectBuilder: Seq[(String, JsValue)] => JsObject) = build(
+  def parseError(exception: Throwable) = build(
     ParseErrorCode,
     "Parse error",
     "Invalid JSON was received by the server.\nAn error occurred on the server while parsing the JSON text.",
-    Some(JsString(exception.getMessage)),
-    jsObjectBuilder
+    Some(JsString(exception.getMessage))
   )
 
-  def invalidRequest(errors: Seq[(JsPath, Seq[ValidationError])],
-                     jsErrorObjectBuilder: Seq[(JsPath, Seq[ValidationError])] => JsObject,
-                     jsObjectBuilder: Seq[(String, JsValue)] => JsObject) = build(
+  def invalidRequest(errors: Seq[(JsPath, Seq[ValidationError])]) = build(
     InvalidRequestCode,
     "Invalid Request",
     "The JSON sent is not a valid Request object.",
-    Some(jsErrorObjectBuilder(errors)),
-    jsObjectBuilder
+    Some(JsError.toFlatJson(errors))
   )
 
-  def methodNotFound(method: String,
-                     jsObjectBuilder: Seq[(String, JsValue)] => JsObject) = build(
+  def methodNotFound(method: String) = build(
     MethodNotFoundCode,
     "Method not found",
     "The method does not exist / is not available.",
-    Some(JsString( s"""The method "$method" is not implemented.""")),
-    jsObjectBuilder
+    Some(JsString( s"""The method "$method" is not implemented."""))
   )
 
-  def invalidParams(errors: Seq[(JsPath, Seq[ValidationError])],
-                    jsErrorObjectBuilder: Seq[(JsPath, Seq[ValidationError])] => JsObject,
-                    jsObjectBuilder: Seq[(String, JsValue)] => JsObject) = build(
+  def invalidParams(errors: Seq[(JsPath, Seq[ValidationError])]) = build(
     InvalidParamsCode,
     "Invalid params",
     "Invalid method toFlatJson(s).",
-    Some(jsErrorObjectBuilder(errors)),
-    jsObjectBuilder
+    Some(JsError.toFlatJson(errors))
   )
 
-  def internalError(error: Option[JsValue] = None,
-                    jsObjectBuilder: Seq[(String, JsValue)] => JsObject) = build(
+  def internalError(error: Option[JsValue] = None) = build(
     InternalErrorCode,
     "Invalid params",
     "Internal JSON-RPC error.",
-    error,
-    jsObjectBuilder
+    error
   )
 
-  def serverError(code: Int, error: Option[JsValue] = None,
-                  jsObjectBuilder: Seq[(String, JsValue)] => JsObject) = {
+  def serverError(code: Int, error: Option[JsValue] = None) = {
     require(code >= ServerErrorCodeFloor && code <= ServerErrorCodeCeiling)
     build(
       InternalErrorCode,
       "Invalid params",
       "Internal JSON-RPC error.",
-      error,
-      jsObjectBuilder
+      error
     )
   }
 
   def applicationError(code: Int,
                        message: String,
                        meaning: String,
-                       error: Option[JsValue] = None,
-                       jsObjectBuilder: Seq[(String, JsValue)] => JsObject) = {
+                       error: Option[JsValue] = None) = {
     require(code > ReservedErrorCodeCeiling || code < ReservedErrorCodeFloor)
     build(
       code,
       message,
       meaning,
-      error,
-      jsObjectBuilder
+      error
     )
   }
 
