@@ -18,12 +18,12 @@ class JsResultUniformity[A] extends Uniformity[JsResult[A]] {
     case _ => b
   }
 
-  override def normalized(a: JsResult[A]) = a match {
+  override def normalized(aJsResult: JsResult[A]) = aJsResult match {
     case jsError: JsError =>
       jsError.copy(
         errors = jsError.errors.sortBy { case (jsPath, _) => jsPath.toJsonString }
       )
-    case _ => a
+    case _ => aJsResult
   }
 
 }

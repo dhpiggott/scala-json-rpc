@@ -11,7 +11,7 @@ import play.api.libs.json._
 class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] with Matchers {
 
   describe("An arbitrary JsValue") {
-    it should behave like decodeError[JsonRpcMessage](
+    it should behave like readError[JsonRpcMessage](
       Json.parse( """{}"""),
       JsError(List((__, List(ValidationError("not a valid request, response or notification message")))))
     )
@@ -19,49 +19,49 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
 
   describe("A JsonRpcRequestMessage") {
     describe("with an incorrect version") {
-      it should behave like decodeError[JsonRpcRequestMessage](
+      it should behave like readError[JsonRpcRequestMessage](
         Json.parse( """{"jsonrpc":"3.0","method":"testMethod","params":{"param1":"param1","param2":"param2"},"id":0}"""),
         JsError(List((__ \ "jsonrpc", List(ValidationError("error.invalid")))))
       )
     }
     describe("with version of the wrong type") {
-      it should behave like decodeError[JsonRpcRequestMessage](
+      it should behave like readError[JsonRpcRequestMessage](
         Json.parse( """{"jsonrpc":2.0,"method":"testMethod","params":{"param1":"param1","param2":"param2"},"id":0}"""),
         JsError(List((__ \ "jsonrpc", List(ValidationError("error.expected.jsstring")))))
       )
     }
     describe("without a version") {
-      it should behave like decodeError[JsonRpcRequestMessage](
+      it should behave like readError[JsonRpcRequestMessage](
         Json.parse( """{"method":"testMethod","params":{"param1":"param1","param2":"param2"},"id":0}"""),
         JsError(List((__ \ "jsonrpc", List(ValidationError("error.path.missing")))))
       )
     }
     describe("with method of the wrong type") {
-      it should behave like decodeError[JsonRpcRequestMessage](
+      it should behave like readError[JsonRpcRequestMessage](
         Json.parse( """{"jsonrpc":"2.0","method":3.0,"params":{"param1":"param1","param2":"param2"},"id":0}"""),
         JsError(List((__ \ "method", List(ValidationError("error.expected.jsstring")))))
       )
     }
     describe("without a method") {
-      it should behave like decodeError[JsonRpcRequestMessage](
+      it should behave like readError[JsonRpcRequestMessage](
         Json.parse( """{"jsonrpc":"2.0","params":{"param1":"param1","param2":"param2"},"id":0}"""),
         JsError(List((__ \ "method", List(ValidationError("error.path.missing")))))
       )
     }
     describe("with params of the wrong type") {
-      it should behave like decodeError[JsonRpcRequestMessage](
+      it should behave like readError[JsonRpcRequestMessage](
         Json.parse( """{"jsonrpc":"2.0","method":"testMethod","params":"params","id":0}"""),
         JsError(List((__ \ "params", List(ValidationError("error.expected.jsobject")))))
       )
     }
     describe("without params") {
-      it should behave like decodeError[JsonRpcRequestMessage](
+      it should behave like readError[JsonRpcRequestMessage](
         Json.parse( """{"jsonrpc":"2.0","method":"testMethod","id":0}"""),
         JsError(List((__ \ "params", List(ValidationError("error.path.missing")))))
       )
     }
     describe("without an id") {
-      it should behave like decodeError[JsonRpcRequestMessage](
+      it should behave like readError[JsonRpcRequestMessage](
         Json.parse( """{"jsonrpc":"2.0","method":"testMethod","params":{"param1":"param1","param2":"param2"}}"""),
         JsError(List((__ \ "id", List(ValidationError("error.path.missing")))))
       )
@@ -79,8 +79,8 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
           Left("zero")
         )
         implicit val jsonRpcRequestMessageJson = Json.parse( """{"jsonrpc":"2.0","method":"testMethod","params":["param1","param2"],"id":"zero"}""")
-        it should behave like decode
-        it should behave like encode
+        it should behave like read
+        it should behave like write
       }
       describe("and an identifier int") {
         implicit val jsonRpcRequestMessage = JsonRpcRequestMessage(
@@ -94,8 +94,8 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
           Right(0)
         )
         implicit val jsonRpcRequestMessageJson = Json.parse( """{"jsonrpc":"2.0","method":"testMethod","params":["param1","param2"],"id":0}""")
-        it should behave like decode
-        it should behave like encode
+        it should behave like read
+        it should behave like write
       }
     }
     describe("with a params object") {
@@ -111,8 +111,8 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
           Left("zero")
         )
         implicit val jsonRpcRequestMessageJson = Json.parse( """{"jsonrpc":"2.0","method":"testMethod","params":{"param1":"param1","param2":"param2"},"id":"zero"}""")
-        it should behave like decode
-        it should behave like encode
+        it should behave like read
+        it should behave like write
       }
       describe("and an identifier int") {
         implicit val jsonRpcRequestMessage = JsonRpcRequestMessage(
@@ -126,45 +126,45 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
           Right(0)
         )
         implicit val jsonRpcRequestMessageJson = Json.parse( """{"jsonrpc":"2.0","method":"testMethod","params":{"param1":"param1","param2":"param2"},"id":0}""")
-        it should behave like decode
-        it should behave like encode
+        it should behave like read
+        it should behave like write
       }
     }
   }
 
   describe("A JsonRpcResponseMessage") {
     describe("with an incorrect version") {
-      it should behave like decodeError[JsonRpcResponseMessage](
+      it should behave like readError[JsonRpcResponseMessage](
         Json.parse( """{"jsonrpc":"3.0","result":{"param1":"param1","param2":"param2"},"id":0}"""),
         JsError(List((__ \ "jsonrpc", List(ValidationError("error.invalid")))))
       )
     }
     describe("with version of the wrong type") {
-      it should behave like decodeError[JsonRpcResponseMessage](
+      it should behave like readError[JsonRpcResponseMessage](
         Json.parse( """{"jsonrpc":2.0,"result":{"param1":"param1","param2":"param2"},"id":0}"""),
         JsError(List((__ \ "jsonrpc", List(ValidationError("error.expected.jsstring")))))
       )
     }
     describe("without a version") {
-      it should behave like decodeError[JsonRpcResponseMessage](
+      it should behave like readError[JsonRpcResponseMessage](
         Json.parse( """{"result":{"param1":"param1","param2":"param2"},"id":0}"""),
         JsError(List((__ \ "jsonrpc", List(ValidationError("error.path.missing")))))
       )
     }
     describe("with an error of the wrong type") {
-      it should behave like decodeError[JsonRpcResponseMessage](
+      it should behave like readError[JsonRpcResponseMessage](
         Json.parse( """{"jsonrpc":"2.0","error":"error","id":0}"""),
         JsError(List((__ \ "result", List(ValidationError("error.path.missing")))))
       )
     }
     describe("without an error or a result") {
-      it should behave like decodeError[JsonRpcResponseMessage](
+      it should behave like readError[JsonRpcResponseMessage](
         Json.parse( """{"jsonrpc":"2.0","id":0}"""),
         JsError(List((__ \ "result", List(ValidationError("error.path.missing")))))
       )
     }
     describe("without an id") {
-      it should behave like decodeError[JsonRpcResponseMessage](
+      it should behave like readError[JsonRpcResponseMessage](
         Json.parse( """{"jsonrpc":"2.0","result":{"param1":"param1","param2":"param2"}}"""),
         JsError(List((__ \ "id", List(ValidationError("error.path.missing")))))
       )
@@ -176,8 +176,8 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
           None
         )
         implicit val jsonRpcResponseMessageJson = Json.parse( """{"jsonrpc":"2.0","error":{"code":-32603,"message":"Invalid params","data":{"meaning":"Internal JSON-RPC error."}},"id":null}""")
-        it should behave like decode
-        it should behave like encode
+        it should behave like read
+        it should behave like write
       }
       describe("and an identifier string") {
         implicit val jsonRpcResponseMessage = JsonRpcResponseMessage(
@@ -185,8 +185,8 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
           Some(Left("zero"))
         )
         implicit val jsonRpcResponseMessageJson = Json.parse( """{"jsonrpc":"2.0","error":{"code":-32603,"message":"Invalid params","data":{"meaning":"Internal JSON-RPC error."}},"id":"zero"}""")
-        it should behave like decode
-        it should behave like encode
+        it should behave like read
+        it should behave like write
       }
       describe("and an identifier int") {
         implicit val jsonRpcResponseMessage = JsonRpcResponseMessage(
@@ -194,8 +194,8 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
           Some(Right(0))
         )
         implicit val jsonRpcResponseMessageJson = Json.parse( """{"jsonrpc":"2.0","error":{"code":-32603,"message":"Invalid params","data":{"meaning":"Internal JSON-RPC error."}},"id":0}""")
-        it should behave like decode
-        it should behave like encode
+        it should behave like read
+        it should behave like write
       }
     }
     describe("with a result") {
@@ -210,8 +210,8 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
           None
         )
         implicit val jsonRpcResponseMessageJson = Json.parse( """{"jsonrpc":"2.0","result":{"param1":"param1","param2":"param2"},"id":null}""")
-        it should behave like decode
-        it should behave like encode
+        it should behave like read
+        it should behave like write
       }
       describe("and an identifier string") {
         implicit val jsonRpcResponseMessage = JsonRpcResponseMessage(
@@ -224,8 +224,8 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
           Some(Left("zero"))
         )
         implicit val jsonRpcResponseMessageJson = Json.parse( """{"jsonrpc":"2.0","result":{"param1":"param1","param2":"param2"},"id":"zero"}""")
-        it should behave like decode
-        it should behave like encode
+        it should behave like read
+        it should behave like write
       }
       describe("and an identifier int") {
         implicit val jsonRpcResponseMessage = JsonRpcResponseMessage(
@@ -238,51 +238,51 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
           Some(Right(0))
         )
         implicit val jsonRpcResponseMessageJson = Json.parse( """{"jsonrpc":"2.0","result":{"param1":"param1","param2":"param2"},"id":0}""")
-        it should behave like decode
-        it should behave like encode
+        it should behave like read
+        it should behave like write
       }
     }
   }
 
   describe("A JsonRpcNotificationMessage") {
     describe("with an incorrect version") {
-      it should behave like decodeError[JsonRpcNotificationMessage](
+      it should behave like readError[JsonRpcNotificationMessage](
         Json.parse( """{"jsonrpc":"3.0","method":"testMethod","params":{"param1":"param1","param2":"param2"}}"""),
         JsError(List((__ \ "jsonrpc", List(ValidationError("error.invalid")))))
       )
     }
     describe("with version of the wrong type") {
-      it should behave like decodeError[JsonRpcNotificationMessage](
+      it should behave like readError[JsonRpcNotificationMessage](
         Json.parse( """{"jsonrpc":2.0,"method":"testMethod","params":{"param1":"param1","param2":"param2"}}"""),
         JsError(List((__ \ "jsonrpc", List(ValidationError("error.expected.jsstring")))))
       )
     }
     describe("without a version") {
-      it should behave like decodeError[JsonRpcNotificationMessage](
+      it should behave like readError[JsonRpcNotificationMessage](
         Json.parse( """{"method":"testMethod","params":{"param1":"param1","param2":"param2"}}"""),
         JsError(List((__ \ "jsonrpc", List(ValidationError("error.path.missing")))))
       )
     }
     describe("with method of the wrong type") {
-      it should behave like decodeError[JsonRpcNotificationMessage](
+      it should behave like readError[JsonRpcNotificationMessage](
         Json.parse( """{"jsonrpc":"2.0","method":3.0,"params":{"param1":"param1","param2":"param2"}}"""),
         JsError(List((__ \ "method", List(ValidationError("error.expected.jsstring")))))
       )
     }
     describe("without a method") {
-      it should behave like decodeError[JsonRpcNotificationMessage](
+      it should behave like readError[JsonRpcNotificationMessage](
         Json.parse( """{"jsonrpc":"2.0","params":{"param1":"param1","param2":"param2"}}"""),
         JsError(List((__ \ "method", List(ValidationError("error.path.missing")))))
       )
     }
     describe("with params of the wrong type") {
-      it should behave like decodeError[JsonRpcNotificationMessage](
+      it should behave like readError[JsonRpcNotificationMessage](
         Json.parse( """{"jsonrpc":"2.0","method":"testMethod","params":"params"}"""),
         JsError(List((__ \ "params", List(ValidationError("error.expected.jsobject")))))
       )
     }
     describe("without params") {
-      it should behave like decodeError[JsonRpcNotificationMessage](
+      it should behave like readError[JsonRpcNotificationMessage](
         Json.parse( """{"jsonrpc":"2.0","method":"testMethod"}"""),
         JsError(List((__ \ "params", List(ValidationError("error.path.missing")))))
       )
@@ -298,8 +298,8 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
         ))
       )
       implicit val jsonRpcNotificationMessageJson = Json.parse( """{"jsonrpc":"2.0","method":"testMethod","params":["param1","param2"]}""")
-      it should behave like decode
-      it should behave like encode
+      it should behave like read
+      it should behave like write
     }
     describe("with a params object") {
       implicit val jsonRpcNotificationMessage = JsonRpcNotificationMessage(
@@ -312,8 +312,8 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
         ))
       )
       implicit val jsonRpcNotificationMessageJson = Json.parse( """{"jsonrpc":"2.0","method":"testMethod","params":{"param1":"param1","param2":"param2"}}""")
-      it should behave like decode
-      it should behave like encode
+      it should behave like read
+      it should behave like write
     }
   }
 
