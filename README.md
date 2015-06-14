@@ -51,11 +51,7 @@ However, there are two caveats:
 
  Specifically, between play-json 2.3.9 and play-json 2.4.0 there was a change in how JsObjects are created. In 2.3.9 the [case class constructor accepted a fields sequence](https://github.com/playframework/playframework/blob/2.3.9/framework/src/play-json/src/main/scala/play/api/libs/json/JsValue.scala#L166), while in 2.4.0 the case class constructor has changed and to create JsObjects from a sequence of fields entails calling a [new apply method on the companion object](https://github.com/playframework/playframework/blob/2.4.0/framework/src/play-json/src/main/scala/play/api/libs/json/JsValue.scala#L154). As such, attempting to create a JsObject with a play-json runtime version of 2.4.0 but with code that was compiled against 2.3.9 results in `NoSuchMethodErrors`.
 
- play-json-rpc accomodates this difference by requiring that the means for creating JsObjects is explicitly passed as an argument to functions that create JsObjects. An example of this is the signature of the `methodNotFound` helper function:
-
- ```scala
-  def methodNotFound(method: String, jsObjectBuilder: Seq[(String, JsValue)] => JsObject)
-```
+ play-json-rpc accomodates this difference by instead using the `Json.obj()` JsObject creation function, which is present in both 2.3.9 and 2.4.0.
 
 ### Contributing
 
