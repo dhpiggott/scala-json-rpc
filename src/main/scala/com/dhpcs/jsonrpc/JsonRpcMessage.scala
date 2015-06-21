@@ -91,17 +91,34 @@ object JsonRpcRequestMessage extends JsonRpcMessageCompanion {
 
 }
 
-/**
- * Do not construct these directly - use the helpers on the companion object. As well as helping with the formatting
- * of the error content, these will ensure the correct codes are used.
- */
-case class JsonRpcResponseError(code: Int,
-                                message: String,
-                                data: Option[JsValue])
+sealed trait JsonRpcResponseError {
+
+  def code: Int
+
+  def message: String
+
+  def data: Option[JsValue]
+
+}
 
 object JsonRpcResponseError {
 
-  implicit val JsonRpcResponseErrorFormat = Json.format[JsonRpcResponseError]
+  private case class RealJsonRpcResponseError(code: Int,
+                                              message: String,
+                                              data: Option[JsValue]) extends JsonRpcResponseError
+
+  private val RealJsonRpcResponseErrorFormat = Json.format[RealJsonRpcResponseError]
+
+  implicit val JsonRpcResponseErrorFormat: Format[JsonRpcResponseError] = Format(
+    Reads(json =>
+      RealJsonRpcResponseErrorFormat.reads(json).map(
+        realJsonRpcResponseError => realJsonRpcResponseError: JsonRpcResponseError
+      )),
+    Writes(traitJsonRpcResponseError =>
+      RealJsonRpcResponseErrorFormat.writes(
+        traitJsonRpcResponseError.asInstanceOf[RealJsonRpcResponseError]
+      ))
+  )
 
   val ReservedErrorCodeFloor = -32768
   val ReservedErrorCodeCeiling = -32000
@@ -114,10 +131,10 @@ object JsonRpcResponseError {
   val ServerErrorCodeFloor = -32099
   val ServerErrorCodeCeiling = -32000
 
-  private def build(code: Int,
+  private def apply(code: Int,
                     message: String,
                     meaning: String,
-                    error: Option[JsValue]) = JsonRpcResponseError(
+                    error: Option[JsValue]): JsonRpcResponseError = RealJsonRpcResponseError(
     code,
     message,
     Some(
@@ -130,35 +147,35 @@ object JsonRpcResponseError {
     )
   )
 
-  def parseError(exception: Throwable) = build(
+  def parseError(exception: Throwable) = JsonRpcResponseError(
     ParseErrorCode,
     "Parse error",
     "Invalid JSON was received by the server.\nAn error occurred on the server while parsing the JSON text.",
     Some(JsString(exception.getMessage))
   )
 
-  def invalidRequest(errors: Seq[(JsPath, Seq[ValidationError])]) = build(
+  def invalidRequest(errors: Seq[(JsPath, Seq[ValidationError])]) = JsonRpcResponseError(
     InvalidRequestCode,
     "Invalid Request",
     "The JSON sent is not a valid Request object.",
     Some(JsError.toFlatJson(errors))
   )
 
-  def methodNotFound(method: String) = build(
+  def methodNotFound(method: String) = JsonRpcResponseError(
     MethodNotFoundCode,
     "Method not found",
     "The method does not exist / is not available.",
     Some(JsString( s"""The method "$method" is not implemented."""))
   )
 
-  def invalidParams(errors: Seq[(JsPath, Seq[ValidationError])]) = build(
+  def invalidParams(errors: Seq[(JsPath, Seq[ValidationError])]) = JsonRpcResponseError(
     InvalidParamsCode,
     "Invalid params",
-    "Invalid method toFlatJson(s).",
+    "Invalid method parameter(s).",
     Some(JsError.toFlatJson(errors))
   )
 
-  def internalError(error: Option[JsValue] = None) = build(
+  def internalError(error: Option[JsValue] = None) = JsonRpcResponseError(
     InternalErrorCode,
     "Invalid params",
     "Internal JSON-RPC error.",
@@ -167,7 +184,7 @@ object JsonRpcResponseError {
 
   def serverError(code: Int, error: Option[JsValue] = None) = {
     require(code >= ServerErrorCodeFloor && code <= ServerErrorCodeCeiling)
-    build(
+    JsonRpcResponseError(
       InternalErrorCode,
       "Invalid params",
       "Internal JSON-RPC error.",
@@ -180,7 +197,7 @@ object JsonRpcResponseError {
                        meaning: String,
                        error: Option[JsValue] = None) = {
     require(code > ReservedErrorCodeCeiling || code < ReservedErrorCodeFloor)
-    build(
+    JsonRpcResponseError(
       code,
       message,
       meaning,
