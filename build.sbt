@@ -6,7 +6,7 @@ version := "0.3.0"
 
 publishArtifact in Test := true
 
-scalaVersion := "2.11.6"
+scalaVersion := "2.11.7"
 
 libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-json" % "2.3.9",
