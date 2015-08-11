@@ -147,6 +147,14 @@ object JsonRpcResponseError {
     )
   )
 
+  private def apply(code: Int,
+                    message: String,
+                    data: Option[JsValue]): JsonRpcResponseError = RealJsonRpcResponseError(
+    code,
+    message,
+    data
+  )
+
   def parseError(exception: Throwable) = JsonRpcResponseError(
     ParseErrorCode,
     "Parse error",
@@ -194,14 +202,12 @@ object JsonRpcResponseError {
 
   def applicationError(code: Int,
                        message: String,
-                       meaning: String,
-                       error: Option[JsValue] = None) = {
+                       data: Option[JsValue] = None) = {
     require(code > ReservedErrorCodeCeiling || code < ReservedErrorCodeFloor)
     JsonRpcResponseError(
       code,
       message,
-      meaning,
-      error
+      data
     )
   }
 
