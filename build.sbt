@@ -2,7 +2,7 @@ name := """play-json-rpc"""
 
 organization := "com.dhpcs"
 
-version := "0.4.0"
+version := "0.5.0-SNAPSHOT"
 
 publishArtifact in Test := true
 
