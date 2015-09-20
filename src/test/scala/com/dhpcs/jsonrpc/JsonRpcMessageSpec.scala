@@ -51,7 +51,7 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
     describe("with params of the wrong type") {
       it should behave like readError[JsonRpcRequestMessage](
         Json.parse( """{"jsonrpc":"2.0","method":"testMethod","params":"params","id":0}"""),
-        JsError(List((__ \ "params", List(ValidationError("error.expected.jsobject")))))
+        JsError(List((__ \ "params", List(ValidationError("error.expected.jsarray")))))
       )
     }
     describe("without params") {
@@ -76,13 +76,13 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
               JsString("param2")
             )
           )),
-          Left("zero")
+          Left("one")
         )
-        implicit val jsonRpcRequestMessageJson = Json.parse( """{"jsonrpc":"2.0","method":"testMethod","params":["param1","param2"],"id":"zero"}""")
+        implicit val jsonRpcRequestMessageJson = Json.parse( """{"jsonrpc":"2.0","method":"testMethod","params":["param1","param2"],"id":"one"}""")
         it should behave like read
         it should behave like write
       }
-      describe("and an identifier int") {
+      describe("and an identifier number") {
         implicit val jsonRpcRequestMessage = JsonRpcRequestMessage(
           "testMethod",
           Left(JsArray(
@@ -91,11 +91,26 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
               JsString("param2")
             )
           )),
-          Right(0)
+          Right(1)
         )
-        implicit val jsonRpcRequestMessageJson = Json.parse( """{"jsonrpc":"2.0","method":"testMethod","params":["param1","param2"],"id":0}""")
+        implicit val jsonRpcRequestMessageJson = Json.parse( """{"jsonrpc":"2.0","method":"testMethod","params":["param1","param2"],"id":1}""")
         it should behave like read
         it should behave like write
+        describe("with a fractional part") {
+          implicit val jsonRpcRequestMessage = JsonRpcRequestMessage(
+            "testMethod",
+            Left(JsArray(
+              Seq(
+                JsString("param1"),
+                JsString("param2")
+              )
+            )),
+            Right(1.1)
+          )
+          implicit val jsonRpcRequestMessageJson = Json.parse( """{"jsonrpc":"2.0","method":"testMethod","params":["param1","param2"],"id":1.1}""")
+          it should behave like read
+          it should behave like write
+        }
       }
     }
     describe("with a params object") {
@@ -108,13 +123,13 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
               "param2" -> JsString("param2")
             )
           )),
-          Left("zero")
+          Left("one")
         )
-        implicit val jsonRpcRequestMessageJson = Json.parse( """{"jsonrpc":"2.0","method":"testMethod","params":{"param1":"param1","param2":"param2"},"id":"zero"}""")
+        implicit val jsonRpcRequestMessageJson = Json.parse( """{"jsonrpc":"2.0","method":"testMethod","params":{"param1":"param1","param2":"param2"},"id":"one"}""")
         it should behave like read
         it should behave like write
       }
-      describe("and an identifier int") {
+      describe("and an identifier number") {
         implicit val jsonRpcRequestMessage = JsonRpcRequestMessage(
           "testMethod",
           Right(JsObject(
@@ -123,11 +138,26 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
               "param2" -> JsString("param2")
             )
           )),
-          Right(0)
+          Right(1)
         )
-        implicit val jsonRpcRequestMessageJson = Json.parse( """{"jsonrpc":"2.0","method":"testMethod","params":{"param1":"param1","param2":"param2"},"id":0}""")
+        implicit val jsonRpcRequestMessageJson = Json.parse( """{"jsonrpc":"2.0","method":"testMethod","params":{"param1":"param1","param2":"param2"},"id":1}""")
         it should behave like read
         it should behave like write
+        describe("with a fractional part") {
+          implicit val jsonRpcRequestMessage = JsonRpcRequestMessage(
+            "testMethod",
+            Right(JsObject(
+              Seq(
+                "param1" -> JsString("param1"),
+                "param2" -> JsString("param2")
+              )
+            )),
+            Right(1.1)
+          )
+          implicit val jsonRpcRequestMessageJson = Json.parse( """{"jsonrpc":"2.0","method":"testMethod","params":{"param1":"param1","param2":"param2"},"id":1.1}""")
+          it should behave like read
+          it should behave like write
+        }
       }
     }
   }
@@ -154,13 +184,16 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
     describe("with an error of the wrong type") {
       it should behave like readError[JsonRpcResponseMessage](
         Json.parse( """{"jsonrpc":"2.0","error":"error","id":0}"""),
-        JsError(List((__ \ "result", List(ValidationError("error.path.missing")))))
+        JsError(List(
+          (__ \ "error" \ "code", List(ValidationError("error.path.missing"))),
+          (__ \ "error" \ "message", List(ValidationError("error.path.missing")))
+        ))
       )
     }
     describe("without an error or a result") {
       it should behave like readError[JsonRpcResponseMessage](
         Json.parse( """{"jsonrpc":"2.0","id":0}"""),
-        JsError(List((__ \ "result", List(ValidationError("error.path.missing")))))
+        JsError(List((__ \ "error", List(ValidationError("error.path.missing")))))
       )
     }
     describe("without an id") {
@@ -182,20 +215,29 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
       describe("and an identifier string") {
         implicit val jsonRpcResponseMessage = JsonRpcResponseMessage(
           Left(JsonRpcResponseError.internalError(None)),
-          Some(Left("zero"))
+          Some(Left("one"))
         )
-        implicit val jsonRpcResponseMessageJson = Json.parse( """{"jsonrpc":"2.0","error":{"code":-32603,"message":"Invalid params","data":{"meaning":"Internal JSON-RPC error."}},"id":"zero"}""")
+        implicit val jsonRpcResponseMessageJson = Json.parse( """{"jsonrpc":"2.0","error":{"code":-32603,"message":"Invalid params","data":{"meaning":"Internal JSON-RPC error."}},"id":"one"}""")
         it should behave like read
         it should behave like write
       }
-      describe("and an identifier int") {
+      describe("and an identifier number") {
         implicit val jsonRpcResponseMessage = JsonRpcResponseMessage(
           Left(JsonRpcResponseError.internalError(None)),
-          Some(Right(0))
+          Some(Right(1))
         )
-        implicit val jsonRpcResponseMessageJson = Json.parse( """{"jsonrpc":"2.0","error":{"code":-32603,"message":"Invalid params","data":{"meaning":"Internal JSON-RPC error."}},"id":0}""")
+        implicit val jsonRpcResponseMessageJson = Json.parse( """{"jsonrpc":"2.0","error":{"code":-32603,"message":"Invalid params","data":{"meaning":"Internal JSON-RPC error."}},"id":1}""")
         it should behave like read
         it should behave like write
+        describe("with a fractional part") {
+          implicit val jsonRpcResponseMessage = JsonRpcResponseMessage(
+            Left(JsonRpcResponseError.internalError(None)),
+            Some(Right(1.1))
+          )
+          implicit val jsonRpcResponseMessageJson = Json.parse( """{"jsonrpc":"2.0","error":{"code":-32603,"message":"Invalid params","data":{"meaning":"Internal JSON-RPC error."}},"id":1.1}""")
+          it should behave like read
+          it should behave like write
+        }
       }
     }
     describe("with a result") {
@@ -221,13 +263,13 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
               "param2" -> JsString("param2")
             )
           )),
-          Some(Left("zero"))
+          Some(Left("one"))
         )
-        implicit val jsonRpcResponseMessageJson = Json.parse( """{"jsonrpc":"2.0","result":{"param1":"param1","param2":"param2"},"id":"zero"}""")
+        implicit val jsonRpcResponseMessageJson = Json.parse( """{"jsonrpc":"2.0","result":{"param1":"param1","param2":"param2"},"id":"one"}""")
         it should behave like read
         it should behave like write
       }
-      describe("and an identifier int") {
+      describe("and an identifier number") {
         implicit val jsonRpcResponseMessage = JsonRpcResponseMessage(
           Right(JsObject(
             Seq(
@@ -235,11 +277,25 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
               "param2" -> JsString("param2")
             )
           )),
-          Some(Right(0))
+          Some(Right(1))
         )
-        implicit val jsonRpcResponseMessageJson = Json.parse( """{"jsonrpc":"2.0","result":{"param1":"param1","param2":"param2"},"id":0}""")
+        implicit val jsonRpcResponseMessageJson = Json.parse( """{"jsonrpc":"2.0","result":{"param1":"param1","param2":"param2"},"id":1}""")
         it should behave like read
         it should behave like write
+        describe("with a fractional part") {
+          implicit val jsonRpcResponseMessage = JsonRpcResponseMessage(
+            Right(JsObject(
+              Seq(
+                "param1" -> JsString("param1"),
+                "param2" -> JsString("param2")
+              )
+            )),
+            Some(Right(1.1))
+          )
+          implicit val jsonRpcResponseMessageJson = Json.parse( """{"jsonrpc":"2.0","result":{"param1":"param1","param2":"param2"},"id":1.1}""")
+          it should behave like read
+          it should behave like write
+        }
       }
     }
   }
@@ -278,7 +334,7 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
     describe("with params of the wrong type") {
       it should behave like readError[JsonRpcNotificationMessage](
         Json.parse( """{"jsonrpc":"2.0","method":"testMethod","params":"params"}"""),
-        JsError(List((__ \ "params", List(ValidationError("error.expected.jsobject")))))
+        JsError(List((__ \ "params", List(ValidationError("error.expected.jsarray")))))
       )
     }
     describe("without params") {

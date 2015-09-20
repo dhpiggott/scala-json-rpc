@@ -40,38 +40,41 @@ object JsonRpcMessage {
 
 abstract class JsonRpcMessageCompanion {
 
-  implicit val IdFormat = eitherValueFormat[String, Int]
+  implicit val IdFormat = eitherValueFormat[String, BigDecimal]
   implicit val ParamsFormat = eitherValueFormat[JsArray, JsObject]
 
-  def eitherObjectFormat[L: Format, R: Format](leftKey: String, rightKey: String) = OFormat[Either[L, R]](
+  def eitherObjectFormat[L, R](leftKey: String, rightKey: String)
+                              (implicit leftFormat: Format[L], rightFormat: Format[R]) =
+    OFormat(
 
-    (__ \ leftKey).read[L].map(a => Left(a): Either[L, R]) orElse
-      (__ \ rightKey).read[R].map(b => Right(b): Either[L, R]),
+      (__ \ rightKey).read(rightFormat).map(b => Right(b): Either[L, R]) orElse
+        (__ \ leftKey).read(leftFormat).map(a => Left(a): Either[L, R]),
 
-    OWrites[Either[L, R]] {
-      case Left(leftValue) => Json.obj(leftKey -> leftValue)
-      case Right(rightValue) => Json.obj(rightKey -> rightValue)
-    }
+      OWrites[Either[L, R]] {
+        case Right(rightValue) => Json.obj(rightKey -> rightFormat.writes(rightValue))
+        case Left(leftValue) => Json.obj(leftKey -> leftFormat.writes(leftValue))
+      }
 
-  )
+    )
 
-  def eitherValueFormat[L: Format, R: Format]: Format[Either[L, R]] = Format[Either[L, R]](
+  def eitherValueFormat[L, R](implicit leftFormat: Format[L], rightFormat: Format[R]) =
+    Format(
 
-    __.read[L].map(a => Left(a): Either[L, R]) orElse
-      __.read[R].map(b => Right(b): Either[L, R]),
+      __.read(rightFormat).map(b => Right(b): Either[L, R]) orElse
+        __.read(leftFormat).map(a => Left(a): Either[L, R]),
 
-    Writes[Either[L, R]] {
-      case Left(leftValue) => Json.toJson[L](leftValue)
-      case Right(rightValue) => Json.toJson[R](rightValue)
-    }
+      Writes[Either[L, R]] {
+        case Right(rightValue) => rightFormat.writes(rightValue)
+        case Left(leftValue) => leftFormat.writes(leftValue)
+      }
 
-  )
+    )
 
 }
 
 case class JsonRpcRequestMessage(method: String,
                                  params: Either[JsArray, JsObject],
-                                 id: Either[String, Int]) extends JsonRpcMessage
+                                 id: Either[String, BigDecimal]) extends JsonRpcMessage
 
 object JsonRpcRequestMessage extends JsonRpcMessageCompanion {
 
@@ -79,7 +82,7 @@ object JsonRpcRequestMessage extends JsonRpcMessageCompanion {
     (__ \ "jsonrpc").format(verifying[String](_ == JsonRpcMessage.Version)) and
       (__ \ "method").format[String] and
       (__ \ "params").format[Either[JsArray, JsObject]] and
-      (__ \ "id").format[Either[String, Int]]
+      (__ \ "id").format[Either[String, BigDecimal]]
     )((_, method, params, id) =>
     JsonRpcRequestMessage(method, params, id),
       jsonRpcRequestMessage =>
@@ -214,14 +217,14 @@ object JsonRpcResponseError {
 }
 
 case class JsonRpcResponseMessage(eitherErrorOrResult: Either[JsonRpcResponseError, JsValue],
-                                  id: Option[Either[String, Int]]) extends JsonRpcMessage
+                                  id: Option[Either[String, BigDecimal]]) extends JsonRpcMessage
 
 object JsonRpcResponseMessage extends JsonRpcMessageCompanion {
 
   implicit val JsonRpcResponseMessageFormat: Format[JsonRpcResponseMessage] = (
     (__ \ "jsonrpc").format(verifying[String](_ == JsonRpcMessage.Version)) and
       __.format(eitherObjectFormat[JsonRpcResponseError, JsValue]("error", "result")) and
-      (__ \ "id").format(Format.optionWithNull[Either[String, Int]])
+      (__ \ "id").format(Format.optionWithNull[Either[String, BigDecimal]])
     )((_, eitherErrorOrResult, id) =>
     JsonRpcResponseMessage(eitherErrorOrResult, id),
       jsonRpcResponseMessage =>
