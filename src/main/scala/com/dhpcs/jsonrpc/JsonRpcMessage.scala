@@ -74,7 +74,7 @@ abstract class JsonRpcMessageCompanion {
 
 case class JsonRpcRequestMessage(method: String,
                                  params: Either[JsArray, JsObject],
-                                 id: Either[String, BigDecimal]) extends JsonRpcMessage
+                                 id: Option[Either[String, BigDecimal]]) extends JsonRpcMessage
 
 object JsonRpcRequestMessage extends JsonRpcMessageCompanion {
 
@@ -82,7 +82,7 @@ object JsonRpcRequestMessage extends JsonRpcMessageCompanion {
     (__ \ "jsonrpc").format(verifying[String](_ == JsonRpcMessage.Version)) and
       (__ \ "method").format[String] and
       (__ \ "params").format[Either[JsArray, JsObject]] and
-      (__ \ "id").format[Either[String, BigDecimal]]
+      (__ \ "id").format(Format.optionWithNull[Either[String, BigDecimal]])
     )((_, method, params, id) =>
     JsonRpcRequestMessage(method, params, id),
       jsonRpcRequestMessage =>
