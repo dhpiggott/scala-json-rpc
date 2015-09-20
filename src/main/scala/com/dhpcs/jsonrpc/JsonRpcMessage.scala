@@ -20,16 +20,24 @@ object JsonRpcMessage {
   implicit val JsonRpcMessageFormat: Format[JsonRpcMessage] = new Format[JsonRpcMessage] {
 
     override def reads(jsValue: JsValue) = (
-      __.read[JsonRpcRequestMessage].map(m => m: JsonRpcMessage) orElse
-        __.read[JsonRpcResponseMessage].map(m => m: JsonRpcMessage) orElse
-        __.read[JsonRpcNotificationMessage].map(m => m: JsonRpcMessage)
-      ).reads(jsValue).orElse(JsError("not a valid request, response or notification message"))
+      __.read(JsonRpcRequestMessage.JsonRpcRequestMessageFormat).map(m => m: JsonRpcMessage) orElse
+        __.read(JsonRpcRequestMessageBatch.JsonRpcRequestMessageBatchFormat).map(m => m: JsonRpcMessage) orElse
+        __.read(JsonRpcResponseMessage.JsonRpcResponseMessageFormat).map(m => m: JsonRpcMessage) orElse
+        __.read(JsonRpcResponseMessageBatch.JsonRpcResponseMessageBatchFormat).map(m => m: JsonRpcMessage) orElse
+        __.read(JsonRpcNotificationMessage.JsonRpcNotificationMessageFormat).map(m => m: JsonRpcMessage)
+      ).reads(jsValue).orElse(
+        JsError("not a valid request, request batch, response, response batch or notification message")
+      )
 
     override def writes(jsonRpcMessage: JsonRpcMessage) = jsonRpcMessage match {
       case jsonRpcRequestMessage: JsonRpcRequestMessage =>
         Json.toJson(jsonRpcRequestMessage)(JsonRpcRequestMessage.JsonRpcRequestMessageFormat)
+      case jsonRpcRequestMessageBatch: JsonRpcRequestMessageBatch =>
+        Json.toJson(jsonRpcRequestMessageBatch)(JsonRpcRequestMessageBatch.JsonRpcRequestMessageBatchFormat)
       case jsonRpcResponseMessage: JsonRpcResponseMessage =>
         Json.toJson(jsonRpcResponseMessage)(JsonRpcResponseMessage.JsonRpcResponseMessageFormat)
+      case jsonRpcResponseMessageBatch: JsonRpcResponseMessageBatch =>
+        Json.toJson(jsonRpcResponseMessageBatch)(JsonRpcResponseMessageBatch.JsonRpcResponseMessageBatchFormat)
       case jsonRpcNotificationMessage: JsonRpcNotificationMessage =>
         Json.toJson(jsonRpcNotificationMessage)(JsonRpcNotificationMessage.JsonRpcNotificationMessageFormat)
     }
@@ -91,6 +99,28 @@ object JsonRpcRequestMessage extends JsonRpcMessageCompanion {
           jsonRpcRequestMessage.params,
           jsonRpcRequestMessage.id)
     )
+
+}
+
+case class JsonRpcRequestMessageBatch(messages: Seq[Either[JsonRpcNotificationMessage, JsonRpcRequestMessage]])
+  extends JsonRpcMessage {
+  require(messages.nonEmpty)
+}
+
+object JsonRpcRequestMessageBatch extends JsonRpcMessageCompanion {
+
+  implicit val RequestOrNotificationFormat = eitherValueFormat[JsonRpcNotificationMessage, JsonRpcRequestMessage]
+
+  implicit val JsonRpcRequestMessageBatchFormat: Format[JsonRpcRequestMessageBatch] = Format(
+    Reads(
+      json => Reads.of[Seq[Either[JsonRpcNotificationMessage, JsonRpcRequestMessage]]](verifying(_.nonEmpty))
+        .reads(json).map(JsonRpcRequestMessageBatch(_))
+    ),
+    Writes(
+      a => Writes.of[Seq[Either[JsonRpcNotificationMessage, JsonRpcRequestMessage]]]
+        .writes(a.messages)
+    )
+  )
 
 }
 
@@ -235,6 +265,25 @@ object JsonRpcResponseMessage extends JsonRpcMessageCompanion {
 
 }
 
+case class JsonRpcResponseMessageBatch(messages: Seq[JsonRpcResponseMessage]) extends JsonRpcMessage {
+  require(messages.nonEmpty)
+}
+
+object JsonRpcResponseMessageBatch extends JsonRpcMessageCompanion {
+
+  implicit val JsonRpcResponseMessageBatchFormat: Format[JsonRpcResponseMessageBatch] = Format(
+    Reads(
+      json => Reads.of[Seq[JsonRpcResponseMessage]](verifying(_.nonEmpty))
+        .reads(json).map(JsonRpcResponseMessageBatch(_))
+    ),
+    Writes(
+      a => Writes.of[Seq[JsonRpcResponseMessage]]
+        .writes(a.messages)
+    )
+  )
+
+}
+
 case class JsonRpcNotificationMessage(method: String,
                                       params: Either[JsArray, JsObject]) extends JsonRpcMessage
 
@@ -252,4 +301,4 @@ object JsonRpcNotificationMessage extends JsonRpcMessageCompanion {
           jsonRpcNotificationMessage.params)
     )
 
-} 
+}

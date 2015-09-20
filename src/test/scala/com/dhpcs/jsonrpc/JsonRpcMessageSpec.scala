@@ -13,7 +13,7 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
   describe("An arbitrary JsValue") {
     it should behave like readError[JsonRpcMessage](
       Json.parse( """{}"""),
-      JsError(List((__, List(ValidationError("not a valid request, response or notification message")))))
+      JsError(List((__, List(ValidationError("not a valid request, request batch, response, response batch or notification message")))))
     )
   }
 
@@ -192,6 +192,65 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
     }
   }
 
+  describe("A JsonRpcRequestMessageBatch") {
+    describe("with no content") {
+      it should behave like readError[JsonRpcRequestMessageBatch](
+        Json.parse( """[]"""),
+        JsError(List((__, List(ValidationError("error.invalid")))))
+      )
+    }
+    describe("with an invalid request") {
+      it should behave like readError[JsonRpcRequestMessageBatch](
+        Json.parse( """[{"jsonrpc":"2.0","method":"testMethod","id":1}]"""),
+        JsError(List((__(0) \ "params", List(ValidationError("error.path.missing")))))
+      )
+    }
+    describe("with a single request") {
+      implicit val jsonRpcRequestMessageBatch = JsonRpcRequestMessageBatch(
+        Seq(
+          Right(JsonRpcRequestMessage(
+            "testMethod",
+            Right(JsObject(
+              Seq(
+                "param1" -> JsString("param1"),
+                "param2" -> JsString("param2")
+              )
+            )),
+            Some(Right(1))
+          ))
+        )
+      )
+      implicit val jsonRpcRequestMessageBatchJson = Json.parse( """[{"jsonrpc":"2.0","method":"testMethod","params":{"param1":"param1","param2":"param2"},"id":1}]""")
+      it should behave like read
+      it should behave like write
+    }
+    describe("with an invalid notification") {
+      it should behave like readError[JsonRpcRequestMessageBatch](
+        Json.parse( """[{"jsonrpc":"2.0","method":"testMethod"}]"""),
+        JsError(List((__(0) \ "params", List(ValidationError("error.path.missing")))))
+      )
+    }
+    describe("with a single notification") {
+      implicit val jsonRpcRequestMessageBatch = JsonRpcRequestMessageBatch(
+        Seq(
+          Left(JsonRpcNotificationMessage(
+            "testMethod",
+            Right(JsObject(
+              Seq(
+                "param1" -> JsString("param1"),
+                "param2" -> JsString("param2")
+              )
+            ))
+          )
+          )
+        )
+      )
+      implicit val jsonRpcRequestMessageBatchJson = Json.parse( """[{"jsonrpc":"2.0","method":"testMethod","params":{"param1":"param1","param2":"param2"}}]""")
+      it should behave like read
+      it should behave like write
+    }
+  }
+
   describe("A JsonRpcResponseMessage") {
     describe("with an incorrect version") {
       it should behave like readError[JsonRpcResponseMessage](
@@ -327,6 +386,39 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
           it should behave like write
         }
       }
+    }
+  }
+
+  describe("A JsonRpcResponseMessageBatch") {
+    describe("with no content") {
+      it should behave like readError[JsonRpcResponseMessageBatch](
+        Json.parse( """[]"""),
+        JsError(List((__, List(ValidationError("error.invalid")))))
+      )
+    }
+    describe("with an invalid response") {
+      it should behave like readError[JsonRpcResponseMessageBatch](
+        Json.parse( """[{"jsonrpc":"2.0","id":1}]"""),
+        JsError(List((__(0) \ "error", List(ValidationError("error.path.missing")))))
+      )
+    }
+    describe("with a single response") {
+      implicit val jsonRpcResponseMessageBatch = JsonRpcResponseMessageBatch(
+        Seq(
+          JsonRpcResponseMessage(
+            Right(JsObject(
+              Seq(
+                "param1" -> JsString("param1"),
+                "param2" -> JsString("param2")
+              )
+            )),
+            Some(Right(1))
+          )
+        )
+      )
+      implicit val jsonRpcResponseMessageBatchJson = Json.parse( """[{"jsonrpc":"2.0","result":{"param1":"param1","param2":"param2"},"id":1}]""")
+      it should behave like read
+      it should behave like write
     }
   }
 
