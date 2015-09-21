@@ -47,28 +47,6 @@ Example usage
 TODO
 
 
-Conformance with the JSON-RPC 2.0 specification
------------------------------------------------
-
-`play-json-rpc` does not conform 100% with the JSON-RPC 2.0 specification. That said, it is compatible with other implementations that conform to the SHOULD clauses of the specification. The deviations are with batching (not supported at all) and with identifiers (described below).
-
-The [specification](http://www.jsonrpc.org/specification) says this about request identifiers:
-> An identifier established by the Client that MUST contain a String, Number, or NULL value if included. If it is not included it is assumed to be a notification. The value SHOULD normally not be Null [1] and Numbers SHOULD NOT contain fractional parts [2]
-
-The `play-json-rpc` type that represents request messages is defined like this:
-
-```scala
-case class JsonRpcRequestMessage(method: String,
-                                 params: Either[JsArray, JsObject],
-                                 id: Either[String, Int])
-```
-
-The two deviations with identifiers are thus:
-
-1. That it only supports integer number identifiers (so no fractional parts, which are permitted but discouraged by the specification). Any request with a fractional numeric identifiers will be read as a `JsError`.
-1. It cannot handle request messages that contain a null identifier (which are permitted but discouraged by the specification). Any request with a null (as opposed to missing) identifier field will be read as either `JsError` (if reading as a `JsonRpcRequestMessage`), or as a `JsonRpcNotification` if reading as a `JsonRpcMessage`.
-
-
 Notes on usage in Android projects
 ----------------------------------
 
