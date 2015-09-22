@@ -77,6 +77,11 @@ class Client {
           disconnect(1002)
           sys.error(s"Received $jsonRpcRequestMessage")
 
+        case jsonRpcRequestMessageBatch: JsonRpcRequestMessageBatch =>
+
+          disconnect(1002)
+          sys.error(s"Received $jsonRpcRequestMessageBatch")
+
         case jsonRpcResponseMessage: JsonRpcResponseMessage =>
 
           jsonRpcResponseMessage.id.fold {
@@ -114,6 +119,11 @@ class Client {
               }
             }
           }
+
+        case jsonRpcResponseMessageBatch: JsonRpcResponseMessageBatch =>
+
+          disconnect(1002)
+          sys.error(s"Received $jsonRpcResponseMessageBatch")
 
         case jsonRpcNotificationMessage: JsonRpcNotificationMessage =>
 
