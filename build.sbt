@@ -1,6 +1,6 @@
-name := """play-json-rpc"""
-
 organization := "com.dhpcs"
+
+name := "play-json-rpc"
 
 version := "0.6.0-SNAPSHOT"
 

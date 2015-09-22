@@ -1,4 +1,4 @@
-name := """play-json-rpc-sample"""
+name := "play-json-rpc-sample"
 
 version := "0.6.0-SNAPSHOT"
 
