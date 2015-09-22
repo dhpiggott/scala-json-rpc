@@ -1,4 +1,4 @@
-package com.dhpcs.jsonrpc.sample
+package com.dhpcs.jsonrpc.sample.models
 
 import com.dhpcs.json.JsResultUniformity
 import com.dhpcs.jsonrpc.{ErrorResponse, JsonRpcNotificationMessage, JsonRpcRequestMessage, JsonRpcResponseMessage}
@@ -108,7 +108,7 @@ class MessageSpec extends FunSpec with Matchers {
   def responseReadError(jsonRpcResponseMessage: JsonRpcResponseMessage, method: String, jsError: JsError) =
     it(s"should fail to decode with error $jsError") {
       (Response.read(jsonRpcResponseMessage, method)
-        should equal(jsError))(after being ordered[Either[ErrorResponse, Response]])
+        should equal(jsError))(after being ordered[Either[ErrorResponse, ResultResponse]])
     }
 
   def responseRead(implicit jsonRpcResponseMessage: JsonRpcResponseMessage,
@@ -118,7 +118,7 @@ class MessageSpec extends FunSpec with Matchers {
       Response.read(jsonRpcResponseMessage, method) should be(JsSuccess(errorOrResponse))
     }
 
-  def responseWrite(implicit errorOrResponse: Either[ErrorResponse, Response],
+  def responseWrite(implicit errorOrResponse: Either[ErrorResponse, ResultResponse],
                     id: Either[String, BigDecimal],
                     jsonRpcResponseMessage: JsonRpcResponseMessage) =
     it(s"should encode to $jsonRpcResponseMessage") {

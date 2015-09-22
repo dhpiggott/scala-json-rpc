@@ -12,9 +12,9 @@ object Message {
 
     val (methodName, formatOrObject) = methodAndFormatOrObject
 
-    def fromJson(jsValue: JsValue) = formatOrObject.fold(
+    def fromJson(json: JsValue) = formatOrObject.fold(
       commandResponse => JsSuccess(commandResponse),
-      format => format.reads(jsValue)
+      format => format.reads(json)
     )
 
     def matchesInstance(o: Any) = classTag.runtimeClass.isInstance(o)

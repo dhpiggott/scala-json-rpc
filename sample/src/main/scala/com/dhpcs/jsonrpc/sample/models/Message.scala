@@ -1,4 +1,4 @@
-package com.dhpcs.jsonrpc.sample
+package com.dhpcs.jsonrpc.sample.models
 
 import com.dhpcs.jsonrpc.Message.MethodFormats
 import com.dhpcs.jsonrpc._
@@ -56,11 +56,13 @@ object Command extends CommandCompanion[Command] {
 
 sealed trait Response extends Message
 
-case object UpdateAccountResponse extends Response
+sealed trait ResultResponse extends Response
 
-case class AddTransactionResponse(created: Long) extends Response
+case object UpdateAccountResponse extends ResultResponse
 
-object Response extends ResponseCompanion[Response] {
+case class AddTransactionResponse(created: Long) extends ResultResponse
+
+object Response extends ResponseCompanion[ResultResponse] {
 
   override val ResponseFormats = MethodFormats(
     "updateAccount" -> UpdateAccountResponse,

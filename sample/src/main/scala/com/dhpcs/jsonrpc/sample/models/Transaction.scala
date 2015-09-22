@@ -1,4 +1,4 @@
-package com.dhpcs.jsonrpc.sample
+package com.dhpcs.jsonrpc.sample.models
 
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._

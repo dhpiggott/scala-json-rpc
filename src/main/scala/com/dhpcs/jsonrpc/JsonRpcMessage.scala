@@ -19,13 +19,13 @@ object JsonRpcMessage {
 
   implicit val JsonRpcMessageFormat: Format[JsonRpcMessage] = new Format[JsonRpcMessage] {
 
-    override def reads(jsValue: JsValue) = (
+    override def reads(json: JsValue) = (
       __.read(JsonRpcRequestMessage.JsonRpcRequestMessageFormat).map(m => m: JsonRpcMessage) orElse
         __.read(JsonRpcRequestMessageBatch.JsonRpcRequestMessageBatchFormat).map(m => m: JsonRpcMessage) orElse
         __.read(JsonRpcResponseMessage.JsonRpcResponseMessageFormat).map(m => m: JsonRpcMessage) orElse
         __.read(JsonRpcResponseMessageBatch.JsonRpcResponseMessageBatchFormat).map(m => m: JsonRpcMessage) orElse
         __.read(JsonRpcNotificationMessage.JsonRpcNotificationMessageFormat).map(m => m: JsonRpcMessage)
-      ).reads(jsValue).orElse(
+      ).reads(json).orElse(
         JsError("not a valid request, request batch, response, response batch or notification message")
       )
 
