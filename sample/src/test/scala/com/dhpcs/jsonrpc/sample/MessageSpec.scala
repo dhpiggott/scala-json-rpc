@@ -1,7 +1,7 @@
 package com.dhpcs.jsonrpc.sample
 
 import com.dhpcs.json.JsResultUniformity
-import com.dhpcs.jsonrpc.{JsonRpcNotificationMessage, JsonRpcRequestMessage, JsonRpcResponseMessage}
+import com.dhpcs.jsonrpc.{ErrorResponse, JsonRpcNotificationMessage, JsonRpcRequestMessage, JsonRpcResponseMessage}
 import org.scalatest.OptionValues._
 import org.scalatest._
 import play.api.data.validation.ValidationError
@@ -107,19 +107,22 @@ class MessageSpec extends FunSpec with Matchers {
 
   def responseReadError(jsonRpcResponseMessage: JsonRpcResponseMessage, method: String, jsError: JsError) =
     it(s"should fail to decode with error $jsError") {
-      (Response.read(jsonRpcResponseMessage, method) should equal(jsError))(after being ordered[Response])
+      (Response.read(jsonRpcResponseMessage, method)
+        should equal(jsError))(after being ordered[Either[ErrorResponse, Response]])
     }
 
-  def responseRead(implicit jsonRpcResponseMessage: JsonRpcResponseMessage, method: String, response: Response) =
-    it(s"should decode to $response") {
-      Response.read(jsonRpcResponseMessage, method) should be(JsSuccess(response))
+  def responseRead(implicit jsonRpcResponseMessage: JsonRpcResponseMessage,
+                   method: String,
+                   errorOrResponse: Either[ErrorResponse, Response]) =
+    it(s"should decode to $errorOrResponse") {
+      Response.read(jsonRpcResponseMessage, method) should be(JsSuccess(errorOrResponse))
     }
 
-  def responseWrite(implicit response: Response,
+  def responseWrite(implicit errorOrResponse: Either[ErrorResponse, Response],
                     id: Either[String, BigDecimal],
                     jsonRpcResponseMessage: JsonRpcResponseMessage) =
     it(s"should encode to $jsonRpcResponseMessage") {
-      Response.write(response, Some(id)) should be(jsonRpcResponseMessage)
+      Response.write(errorOrResponse, Some(id)) should be(jsonRpcResponseMessage)
     }
 
   describe("A Response") {
@@ -139,9 +142,9 @@ class MessageSpec extends FunSpec with Matchers {
         )
       }
     }
-    implicit val addTransactionResponse = AddTransactionResponse(
+    implicit val addTransactionResponse = Right(AddTransactionResponse(
       1434115187612L
-    )
+    ))
     implicit val id = Right(BigDecimal(1))
     implicit val jsonRpcResponseMessage = JsonRpcResponseMessage(
       Right(
