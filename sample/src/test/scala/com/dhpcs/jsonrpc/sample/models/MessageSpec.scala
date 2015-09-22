@@ -113,7 +113,7 @@ class MessageSpec extends FunSpec with Matchers {
 
   def responseRead(implicit jsonRpcResponseMessage: JsonRpcResponseMessage,
                    method: String,
-                   errorOrResponse: Either[ErrorResponse, Response]) =
+                   errorOrResponse: Either[ErrorResponse, ResultResponse]) =
     it(s"should decode to $errorOrResponse") {
       Response.read(jsonRpcResponseMessage, method) should be(JsSuccess(errorOrResponse))
     }
