@@ -2,7 +2,7 @@ organization := "com.dhpcs"
 
 name := "play-json-rpc"
 
-version := "0.6.0-SNAPSHOT"
+version := "0.6.0"
 
 scalaVersion := "2.11.7"
 
