@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2015 David Piggott <https://www.dhpcs.com>
+ */
 package com.dhpcs.jsonrpc
 
 import com.dhpcs.jsonrpc.Message.MethodFormat
