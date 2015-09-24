@@ -4,20 +4,20 @@ play-json-rpc
 A Scala library providing implicit [play-json Formats](https://www.playframework.com/documentation/2.3.x/ScalaJson) for [JSON-RPC 2.0](http://www.jsonrpc.org/specification) messages, built on top of the Play! Framework's standalone `play-json` library. It does *not* depend on the whole of Play, so the dependency footprint is relatively small and you can use it in a wide range of applications - including in Android projects.
 
 
-Building with SBT
------------------
+SBT dependency
+--------------
 
 Just add the following lines to your `build.sbt`:
 
 ```scala
-resolvers += "dhpcs at bintray" at "http://dl.bintray.com/dhpcs/maven"
+resolvers += "dhpcs at bintray" at "https://dl.bintray.com/dhpcs/maven"
 
 libraryDependencies += "com.dhpcs" %% "play-json-rpc" % "0.6.0"
 ```
 
 
-Building with Gradle
---------------------
+Gradle dependency
+-----------------
 
 For (e.g.) Android Gradle projects, first add to the `repositories` block of your top-level `build.gradle`:
 
@@ -26,7 +26,7 @@ allprojects {
     repositories {
         jcenter()
         maven {
-            url  "http://dl.bintray.com/dhpcs/maven"
+            url  "https://dl.bintray.com/dhpcs/maven"
         }
     }
 }
@@ -50,35 +50,35 @@ Structure
 
     ```scala
     case class JsonRpcRequestMessage(method: String,
-                                       params: Either[JsArray, JsObject],
-                                       id: Option[Either[String, BigDecimal]]) extends JsonRpcMessage
+                                     params: Either[JsArray, JsObject],
+                                     id: Option[Either[String, BigDecimal]]) extends JsonRpcMessage
     ```
  1. `JsonRpcRequestMessageBatch`:
 
     ```scala
     case class JsonRpcRequestMessageBatch(messages: Seq[Either[JsonRpcNotificationMessage, JsonRpcRequestMessage]])
-        extends JsonRpcMessage {
-        require(messages.nonEmpty)
+      extends JsonRpcMessage {
+      require(messages.nonEmpty)
     }
     ```
  1. `JsonRpcResponseMessage`:
 
     ```scala
     case class JsonRpcResponseMessage(eitherErrorOrResult: Either[JsonRpcResponseError, JsValue],
-                                        id: Option[Either[String, BigDecimal]]) extends JsonRpcMessage
+                                      id: Option[Either[String, BigDecimal]]) extends JsonRpcMessage
     ```
  1. `JsonRpcResponseMessageBatch`:
 
     ```scala
     case class JsonRpcResponseMessageBatch(messages: Seq[JsonRpcResponseMessage]) extends JsonRpcMessage {
-        require(messages.nonEmpty)
+      require(messages.nonEmpty)
     }
     ```
  1. `JsonRpcNotificationMessage`:
 
     ```scala
     case class JsonRpcNotificationMessage(method: String,
-                                            params: Either[JsArray, JsObject]) extends JsonRpcMessage
+                                          params: Either[JsArray, JsObject]) extends JsonRpcMessage
     ```
 
  The companion object for the `JsonRpcMessage` trait has an implicitly available `JsonRpcMessageFormat` that can read and write all of the above types - you can then match on the type of the result.
