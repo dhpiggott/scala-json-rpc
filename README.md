@@ -12,7 +12,7 @@ Just add the following lines to your `build.sbt`:
 ```scala
 resolvers += "dhpcs at bintray" at "https://dl.bintray.com/dhpcs/maven"
 
-libraryDependencies += "com.dhpcs" %% "play-json-rpc" % "0.6.0"
+libraryDependencies += "com.dhpcs" %% "play-json-rpc" % "1.0.0"
 ```
 
 
@@ -36,7 +36,7 @@ Then add to the `dependencies` block of your main module's `build.gradle`:
 
 ```groovy
 dependencies {
-    compile 'com.dhpcs:play-json-rpc_2.11:0.6.0'
+    compile 'com.dhpcs:play-json-rpc_2.11:1.0.0'
 }
 ```
 
@@ -602,9 +602,9 @@ To make use of these classes in your dependent project's tests, you would set yo
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.dhpcs" %% "play-json-rpc" % "0.4.0",
+  "com.dhpcs" %% "play-json-rpc" % "1.0.0",
   "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test",
-  "com.dhpcs" %% "play-json-rpc" % "0.4.0" % "test->test"
+  "com.dhpcs" %% "play-json-rpc" % "1.0.0" % "test->test"
 )
 ```
 
@@ -619,7 +619,7 @@ or
 
 * Continue using the Bintray artifacts but change the SBT dependency line to look like this:
   ```scala
-   "com.dhpcs" %% "play-json-rpc" % "0.4.0" % "test" classifier("tests")
+   "com.dhpcs" %% "play-json-rpc" % "1.0.0" % "test" classifier("tests")
   ```
 
  With this the disadvantage is that the main configuration of the POM produced by your dependent project will unnecessarily depend on the test configuration `.jar` of `play-json-rpc`.
