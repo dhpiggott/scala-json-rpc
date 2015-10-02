@@ -45,8 +45,6 @@ class Client {
 
   private def deliverToServer(jsonString: String) = ???
 
-  private def disconnect(reason: Int) = ???
-
   private def notifySubscribers(notification: Notification) = ???
 
   def sendCommand(command: Command, responseCallback: ResponseCallback) {
@@ -67,34 +65,28 @@ class Client {
 
       case Left(error) =>
 
-        disconnect(1002)
         sys.error(error)
 
       case Right(jsonRpcMessage) => jsonRpcMessage match {
 
         case jsonRpcRequestMessage: JsonRpcRequestMessage =>
 
-          disconnect(1002)
           sys.error(s"Received $jsonRpcRequestMessage")
 
         case jsonRpcRequestMessageBatch: JsonRpcRequestMessageBatch =>
 
-          disconnect(1002)
           sys.error(s"Received $jsonRpcRequestMessageBatch")
 
         case jsonRpcResponseMessage: JsonRpcResponseMessage =>
 
           jsonRpcResponseMessage.id.fold {
-            disconnect(1002)
             sys.error(s"JSON-RPC message ID missing, jsonRpcResponseMessage" +
               s".eitherErrorOrResult=${jsonRpcResponseMessage.eitherErrorOrResult}")
           } { id =>
             id.right.toOption.fold {
               sys.error(s"JSON-RPC message ID was not a number, id=$id")
-              disconnect(1002)
             } { commandIdentifier =>
               pendingRequests.get(commandIdentifier).fold {
-                disconnect(1002)
                 sys.error(s"No pending request exists with commandIdentifier" +
                   s"=$commandIdentifier")
               } { pendingRequest =>
@@ -103,7 +95,6 @@ class Client {
                   jsonRpcResponseMessage,
                   pendingRequest.requestMessage.method
                 ).fold({ errors =>
-                  disconnect(1002)
                   sys.error(s"Invalid Response: $errors")
                 }, {
 
@@ -122,17 +113,14 @@ class Client {
 
         case jsonRpcResponseMessageBatch: JsonRpcResponseMessageBatch =>
 
-          disconnect(1002)
           sys.error(s"Received $jsonRpcResponseMessageBatch")
 
         case jsonRpcNotificationMessage: JsonRpcNotificationMessage =>
 
           Notification.read(jsonRpcNotificationMessage).fold {
-            disconnect(1002)
             sys.error(s"No notification type exists with method" +
               s"=${jsonRpcNotificationMessage.method}")
           }(_.fold({ errors =>
-            disconnect(1002)
             sys.error(s"Invalid Notification: $errors")
           }, notifySubscribers
           ))
