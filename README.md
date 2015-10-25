@@ -1,7 +1,7 @@
 play-json-rpc
 =============
 
-A Scala library providing implicit [play-json Formats](https://www.playframework.com/documentation/2.3.x/ScalaJson) for [JSON-RPC 2.0](http://www.jsonrpc.org/specification) messages, built on top of the Play! Framework's standalone `play-json` library. It does *not* depend on the whole of Play, so the dependency footprint is relatively small and you can use it in a wide range of applications -- including in Android projects.
+A Scala library providing implicit [play-json Formats](https://www.playframework.com/documentation/2.3.x/ScalaJson) for [JSON-RPC 2.0](http://www.jsonrpc.org/specification) messages, built on top of the Play! Framework's standalone `play-json` library. It does *not* depend on the whole of Play, so the dependency footprint is relatively small and you can use it in a wide range of applications – including in Android projects.
 
 SBT dependency
 --------------
@@ -84,7 +84,7 @@ Structure
                                             params: Either[JsArray, JsObject]) extends JsonRpcMessage
       ```
 
- The companion object for the `JsonRpcMessage` trait has an implicitly available `JsonRpcMessageFormat` that can read and write all of the above types -- you can then match on the type of the result.
+ The companion object for the `JsonRpcMessage` trait has an implicitly available `JsonRpcMessageFormat` that can read and write all of the above types – you can then match on the type of the result.
 
 2. A set of abstract classes as bases for companion objects providing read/write functions for a hierarchy of application level types (see example usage).
 
@@ -579,7 +579,7 @@ However, there are two caveats:
 
 1. The `play-json-rpc` dependency on `play-json` and its transitive dependencies will result in your application exceeding the [DEX 65K Methods Limit](https://developer.android.com/tools/building/multidex.html). You will need to workaround this. The recommended approach is to use MultiDex as described at https://github.com/saturday06/gradle-android-scala-plugin#52-option-2-use-multidex. Note that unless you are writing Scala code in the Android application itself you do *not* need to add `compile "org.scala-lang:scala-library:2.11.7"` to your dependencies, just as you do not need to use the gradle-android-scala plugin.
 
-2. In Play 2.4, ["the support for Java 6 and Java 7 was dropped and Play 2.4 now requires Java 8."](https://playframework.com/documentation/2.4.x/Migration24). This means that the 2.4.0 standalone play-json library is also compiled with JDK8. In order to support use in Android projects `play-json-rpc` depends on `play-json` 2.3.9 -- the last release compiled with JDK7. As long as Android does not support Java 8 features, changing the dependency to 2.4.0 will result in build time errors in Android projects.
+2. In Play 2.4, ["the support for Java 6 and Java 7 was dropped and Play 2.4 now requires Java 8."](https://playframework.com/documentation/2.4.x/Migration24). This means that the 2.4.0 standalone play-json library is also compiled with JDK8. In order to support use in Android projects `play-json-rpc` depends on `play-json` 2.3.9 – the last release compiled with JDK7. As long as Android does not support Java 8 features, changing the dependency to 2.4.0 will result in build time errors in Android projects.
 
    Fixing the dependency at 2.3.9 introduces its own problems in that Play! 2.4.x+ projects will override the `play-json` dependency to 2.4.x, which can result in runtime errors if the runtime play-json version e.g. does not have methods that were present in 2.3.9 which `play-json-rpc` is compiled against.
 
@@ -626,7 +626,7 @@ or
 Contributing
 ------------
 
-Contributions -- both code and documentation -- are welcome.
+Contributions – both code and documentation – are welcome.
 
 The tests are in `JsonRpcMessageSpec.scala` and can be run with `./activator test`.
 
