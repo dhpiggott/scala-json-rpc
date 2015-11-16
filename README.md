@@ -199,7 +199,7 @@ object Notification extends NotificationCompanion[Notification] {
 
 ### Sample server code
 
-Note that `readCommand` is not included in `play-json-rpc` itself because different use cases may have different directionality. The following sample receives commands and sends responses & notifications; other use cases might receive commands & notifications but only send responses.
+Note that `readCommand` is not included in `play-json-rpc` itself because different use cases may have different directionality. The following sample receives commands and sends responses and notifications; other use cases might receive commands and notifications but only send responses.
 
 The full definition with imports is at [sample/src/main/scala/com/dhpcs/jsonrpc/sample/Server.scala](sample/src/main/scala/com/dhpcs/jsonrpc/sample/Server.scala).
 
