@@ -9,11 +9,9 @@ import play.api.libs.json._
 trait FormatBehaviors[A] {
   this: FunSpecLike with Matchers =>
 
-  def ordered[B] = new JsResultUniformity[B]
-
   def readError[B <: A](json: JsValue, jsError: JsError)(implicit format: Format[B]) =
     it(s"should fail to decode with error $jsError") {
-      (Json.fromJson(json)(format) should equal(jsError))(after being ordered[B])
+      (Json.fromJson(json)(format) should equal(jsError)) (after being ordered[B])
     }
 
   def read(implicit json: JsValue, a: A, format: Format[A]) =
@@ -25,5 +23,7 @@ trait FormatBehaviors[A] {
     it(s"should encode to $json") {
       Json.toJson(a)(format) should be(json)
     }
+
+  def ordered[B] = new JsResultUniformity[B]
 
 }
