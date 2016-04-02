@@ -100,12 +100,12 @@ abstract class ResponseCompanion[A] {
       result => ResponseFormats.find(_.methodName == method).get.fromJson(result).map(Right(_))
     ).fold(
 
-        /*
-         * We do this in order to drop any non-root path that may have existed in the success case.
-         */
-        invalid => JsError(invalid),
-        valid => JsSuccess(valid)
-      )
+      /*
+       * We do this in order to drop any non-root path that may have existed in the success case.
+       */
+      invalid => JsError(invalid),
+      valid => JsSuccess(valid)
+    )
 
   def write(response: Either[ErrorResponse, A], id: Option[Either[String, BigDecimal]]): JsonRpcResponseMessage = {
     val eitherErrorOrResult = response match {

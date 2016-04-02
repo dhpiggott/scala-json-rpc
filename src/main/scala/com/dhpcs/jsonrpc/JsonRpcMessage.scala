@@ -26,8 +26,8 @@ object JsonRpcMessage {
         __.read(JsonRpcResponseMessageBatch.JsonRpcResponseMessageBatchFormat).map(m => m: JsonRpcMessage) orElse
         __.read(JsonRpcNotificationMessage.JsonRpcNotificationMessageFormat).map(m => m: JsonRpcMessage)
       ).reads(json).orElse(
-        JsError("not a valid request, request batch, response, response batch or notification message")
-      )
+      JsError("not a valid request, request batch, response, response batch or notification message")
+    )
 
     override def writes(jsonRpcMessage: JsonRpcMessage) = jsonRpcMessage match {
       case jsonRpcRequestMessage: JsonRpcRequestMessage =>
@@ -91,14 +91,14 @@ object JsonRpcRequestMessage extends JsonRpcMessageCompanion {
       (__ \ "method").format[String] and
       (__ \ "params").format[Either[JsArray, JsObject]] and
       (__ \ "id").format(Format.optionWithNull[Either[String, BigDecimal]])
-    )((_, method, params, id) =>
+    ) ((_, method, params, id) =>
     JsonRpcRequestMessage(method, params, id),
-      jsonRpcRequestMessage =>
-        (JsonRpcMessage.Version,
-          jsonRpcRequestMessage.method,
-          jsonRpcRequestMessage.params,
-          jsonRpcRequestMessage.id)
-    )
+    jsonRpcRequestMessage =>
+      (JsonRpcMessage.Version,
+        jsonRpcRequestMessage.method,
+        jsonRpcRequestMessage.params,
+        jsonRpcRequestMessage.id)
+  )
 
 }
 
@@ -255,13 +255,13 @@ object JsonRpcResponseMessage extends JsonRpcMessageCompanion {
     (__ \ "jsonrpc").format(verifying[String](_ == JsonRpcMessage.Version)) and
       __.format(eitherObjectFormat[JsonRpcResponseError, JsValue]("error", "result")) and
       (__ \ "id").format(Format.optionWithNull[Either[String, BigDecimal]])
-    )((_, eitherErrorOrResult, id) =>
+    ) ((_, eitherErrorOrResult, id) =>
     JsonRpcResponseMessage(eitherErrorOrResult, id),
-      jsonRpcResponseMessage =>
-        (JsonRpcMessage.Version,
-          jsonRpcResponseMessage.eitherErrorOrResult,
-          jsonRpcResponseMessage.id)
-    )
+    jsonRpcResponseMessage =>
+      (JsonRpcMessage.Version,
+        jsonRpcResponseMessage.eitherErrorOrResult,
+        jsonRpcResponseMessage.id)
+  )
 
 }
 
@@ -293,12 +293,12 @@ object JsonRpcNotificationMessage extends JsonRpcMessageCompanion {
     (__ \ "jsonrpc").format(verifying[String](_ == JsonRpcMessage.Version)) and
       (__ \ "method").format[String] and
       (__ \ "params").format[Either[JsArray, JsObject]]
-    )((_, method, params) =>
+    ) ((_, method, params) =>
     JsonRpcNotificationMessage(method, params),
-      jsonRpcNotificationMessage =>
-        (JsonRpcMessage.Version,
-          jsonRpcNotificationMessage.method,
-          jsonRpcNotificationMessage.params)
-    )
+    jsonRpcNotificationMessage =>
+      (JsonRpcMessage.Version,
+        jsonRpcNotificationMessage.method,
+        jsonRpcNotificationMessage.params)
+  )
 
 }
