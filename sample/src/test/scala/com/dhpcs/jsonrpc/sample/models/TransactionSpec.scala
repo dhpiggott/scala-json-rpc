@@ -7,9 +7,9 @@ import play.api.libs.json._
 
 class TransactionSpec extends FunSpec with FormatBehaviors[Transaction] with Matchers {
 
-  describe("A JsValue of the wrong type") {
+  describe("A JsValue of the wrong type")(
     it should behave like readError(
-      Json.parse( """0"""),
+      Json.parse("0"),
       JsError(List(
         (__ \ "from", List(ValidationError("error.path.missing"))),
         (__ \ "to", List(ValidationError("error.path.missing"))),
@@ -17,7 +17,7 @@ class TransactionSpec extends FunSpec with FormatBehaviors[Transaction] with Mat
         (__ \ "created", List(ValidationError("error.path.missing")))
       ))
     )
-  }
+  )
 
   describe("A Transaction") {
     describe("without a description or metadata") {
@@ -27,7 +27,15 @@ class TransactionSpec extends FunSpec with FormatBehaviors[Transaction] with Mat
         BigDecimal(1000000),
         1434115187612L
       )
-      implicit val transactionJson = Json.parse( """{"from":0,"to":1,"value":1000000,"created":1434115187612}""")
+      implicit val transactionJson = Json.parse(
+        """
+          |{
+          |  "from":0,
+          |  "to":1,
+          |  "value":1000000,
+          |  "created":1434115187612
+          |}""".stripMargin
+      )
       it should behave like read
       it should behave like write
     }
@@ -44,10 +52,19 @@ class TransactionSpec extends FunSpec with FormatBehaviors[Transaction] with Mat
           )
         )
       )
-      implicit val transactionJson = Json.parse( """{"from":0,"to":1,"value":1000000,"created":1434115187612,"description":"Property purchase","metadata":{"property":"The TARDIS"}}""")
+      implicit val transactionJson = Json.parse(
+        """
+          |{
+          |  "from":0,
+          |  "to":1,
+          |  "value":1000000,
+          |  "created":1434115187612,
+          |  "description":"Property purchase",
+          |  "metadata":{"property":"The TARDIS"}
+          |}""".stripMargin
+      )
       it should behave like read
       it should behave like write
     }
   }
-
 }

@@ -14,11 +14,9 @@ import scala.collection.Seq
 sealed trait JsonRpcMessage
 
 object JsonRpcMessage {
-
   val Version = "2.0"
 
   implicit val JsonRpcMessageFormat: Format[JsonRpcMessage] = new Format[JsonRpcMessage] {
-
     override def reads(json: JsValue) = (
       __.read(JsonRpcRequestMessage.JsonRpcRequestMessageFormat).map(m => m: JsonRpcMessage) orElse
         __.read(JsonRpcRequestMessageBatch.JsonRpcRequestMessageBatchFormat).map(m => m: JsonRpcMessage) orElse
@@ -41,13 +39,10 @@ object JsonRpcMessage {
       case jsonRpcNotificationMessage: JsonRpcNotificationMessage =>
         Json.toJson(jsonRpcNotificationMessage)(JsonRpcNotificationMessage.JsonRpcNotificationMessageFormat)
     }
-
   }
-
 }
 
 abstract class JsonRpcMessageCompanion {
-
   implicit val IdFormat = eitherValueFormat[String, BigDecimal]
   implicit val ParamsFormat = eitherValueFormat[JsArray, JsObject]
 
@@ -77,7 +72,6 @@ abstract class JsonRpcMessageCompanion {
       }
 
     )
-
 }
 
 case class JsonRpcRequestMessage(method: String,
@@ -85,7 +79,6 @@ case class JsonRpcRequestMessage(method: String,
                                  id: Option[Either[String, BigDecimal]]) extends JsonRpcMessage
 
 object JsonRpcRequestMessage extends JsonRpcMessageCompanion {
-
   implicit val JsonRpcRequestMessageFormat: Format[JsonRpcRequestMessage] = (
     (__ \ "jsonrpc").format(verifying[String](_ == JsonRpcMessage.Version)) and
       (__ \ "method").format[String] and
@@ -99,7 +92,6 @@ object JsonRpcRequestMessage extends JsonRpcMessageCompanion {
         jsonRpcRequestMessage.params,
         jsonRpcRequestMessage.id)
   )
-
 }
 
 case class JsonRpcRequestMessageBatch(messages: Seq[Either[JsonRpcNotificationMessage, JsonRpcRequestMessage]])
@@ -108,7 +100,6 @@ case class JsonRpcRequestMessageBatch(messages: Seq[Either[JsonRpcNotificationMe
 }
 
 object JsonRpcRequestMessageBatch extends JsonRpcMessageCompanion {
-
   implicit val RequestOrNotificationFormat = eitherValueFormat[JsonRpcNotificationMessage, JsonRpcRequestMessage]
 
   implicit val JsonRpcRequestMessageBatchFormat: Format[JsonRpcRequestMessageBatch] = Format(
@@ -121,17 +112,14 @@ object JsonRpcRequestMessageBatch extends JsonRpcMessageCompanion {
         .writes(a.messages)
     )
   )
-
 }
 
 sealed trait JsonRpcResponseError {
-
   def code: Int
 
   def message: String
 
   def data: Option[JsValue]
-
 }
 
 object JsonRpcResponseError {
@@ -243,14 +231,12 @@ object JsonRpcResponseError {
       data
     )
   }
-
 }
 
 case class JsonRpcResponseMessage(eitherErrorOrResult: Either[JsonRpcResponseError, JsValue],
                                   id: Option[Either[String, BigDecimal]]) extends JsonRpcMessage
 
 object JsonRpcResponseMessage extends JsonRpcMessageCompanion {
-
   implicit val JsonRpcResponseMessageFormat: Format[JsonRpcResponseMessage] = (
     (__ \ "jsonrpc").format(verifying[String](_ == JsonRpcMessage.Version)) and
       __.format(eitherObjectFormat[JsonRpcResponseError, JsValue]("error", "result")) and
@@ -262,7 +248,6 @@ object JsonRpcResponseMessage extends JsonRpcMessageCompanion {
         jsonRpcResponseMessage.eitherErrorOrResult,
         jsonRpcResponseMessage.id)
   )
-
 }
 
 case class JsonRpcResponseMessageBatch(messages: Seq[JsonRpcResponseMessage]) extends JsonRpcMessage {
@@ -270,7 +255,6 @@ case class JsonRpcResponseMessageBatch(messages: Seq[JsonRpcResponseMessage]) ex
 }
 
 object JsonRpcResponseMessageBatch extends JsonRpcMessageCompanion {
-
   implicit val JsonRpcResponseMessageBatchFormat: Format[JsonRpcResponseMessageBatch] = Format(
     Reads(
       json => Reads.of[Seq[JsonRpcResponseMessage]](verifying(_.nonEmpty))
@@ -281,14 +265,12 @@ object JsonRpcResponseMessageBatch extends JsonRpcMessageCompanion {
         .writes(a.messages)
     )
   )
-
 }
 
 case class JsonRpcNotificationMessage(method: String,
                                       params: Either[JsArray, JsObject]) extends JsonRpcMessage
 
 object JsonRpcNotificationMessage extends JsonRpcMessageCompanion {
-
   implicit val JsonRpcNotificationMessageFormat: Format[JsonRpcNotificationMessage] = (
     (__ \ "jsonrpc").format(verifying[String](_ == JsonRpcMessage.Version)) and
       (__ \ "method").format[String] and
@@ -300,5 +282,4 @@ object JsonRpcNotificationMessage extends JsonRpcMessageCompanion {
         jsonRpcNotificationMessage.method,
         jsonRpcNotificationMessage.params)
   )
-
 }

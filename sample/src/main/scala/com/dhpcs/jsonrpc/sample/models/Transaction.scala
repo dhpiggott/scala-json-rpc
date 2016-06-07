@@ -15,7 +15,6 @@ case class Transaction(from: Int,
 }
 
 object Transaction {
-
   implicit val TransactionFormat: Format[Transaction] = (
     (JsPath \ "from").format[Int] and
       (JsPath \ "to").format[Int] and
@@ -23,7 +22,7 @@ object Transaction {
       (JsPath \ "created").format(min[Long](0)) and
       (JsPath \ "description").formatNullable[String] and
       (JsPath \ "metadata").formatNullable[JsObject]
-    )((from, to, value, created, description, metadata) =>
+    ) ((from, to, value, created, description, metadata) =>
     Transaction(
       from,
       to,
@@ -38,6 +37,5 @@ object Transaction {
       transaction.created,
       transaction.description,
       transaction.metadata)
-    )
-
+  )
 }

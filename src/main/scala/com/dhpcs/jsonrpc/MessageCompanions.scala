@@ -12,7 +12,6 @@ object Message {
 
   abstract class MethodFormat[A](methodAndFormatOrObject: (String, Either[A, Format[A]]))
                                 (implicit val classTag: ClassTag[A]) {
-
     val (methodName, formatOrObject) = methodAndFormatOrObject
 
     def fromJson(json: JsValue) = formatOrObject.fold(
@@ -26,7 +25,6 @@ object Message {
       _ => Json.obj(),
       format => format.writes(o.asInstanceOf[A])
     )
-
   }
 
   implicit class MethodFormatFormat[A](methodAndFormat: (String, Format[A]))(implicit classTag: ClassTag[A])
@@ -36,7 +34,6 @@ object Message {
     extends MethodFormat(methodAndObject._1, Left(methodAndObject._2))(classTag)
 
   object MethodFormats {
-
     def apply[A](methodFormats: MethodFormat[_ <: A]*) = {
       val methodNames = methodFormats.map(_.methodName)
       require(
@@ -54,13 +51,11 @@ object Message {
       )
       methodFormats
     }
-
   }
 
 }
 
 abstract class CommandCompanion[A] {
-
   val CommandTypeFormats: Seq[MethodFormat[_ <: A]]
 
   def read(jsonRpcRequestMessage: JsonRpcRequestMessage): Option[JsResult[A]] =
@@ -83,7 +78,6 @@ abstract class CommandCompanion[A] {
       .getOrElse(sys.error(s"No format found for ${command.getClass}"))
     JsonRpcRequestMessage(mapping.methodName, Right(mapping.toJson(command).asInstanceOf[JsObject]), id)
   }
-
 }
 
 case class ErrorResponse(code: Int,
@@ -91,7 +85,6 @@ case class ErrorResponse(code: Int,
                          data: Option[JsValue] = None)
 
 abstract class ResponseCompanion[A] {
-
   val ResponseFormats: Seq[MethodFormat[_ <: A]]
 
   def read(jsonRpcResponseMessage: JsonRpcResponseMessage, method: String): JsResult[Either[ErrorResponse, A]] =
@@ -119,11 +112,9 @@ abstract class ResponseCompanion[A] {
     }
     JsonRpcResponseMessage(eitherErrorOrResult, id)
   }
-
 }
 
 abstract class NotificationCompanion[A] {
-
   val NotificationFormats: Seq[MethodFormat[_ <: A]]
 
   def read(jsonRpcNotificationMessage: JsonRpcNotificationMessage): Option[JsResult[A]] =
@@ -146,5 +137,4 @@ abstract class NotificationCompanion[A] {
       .getOrElse(sys.error(s"No format found for ${notification.getClass}"))
     JsonRpcNotificationMessage(mapping.methodName, Right(mapping.toJson(notification).asInstanceOf[JsObject]))
   }
-
 }

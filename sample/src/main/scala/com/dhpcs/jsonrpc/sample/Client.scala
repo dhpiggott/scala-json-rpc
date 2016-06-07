@@ -10,42 +10,33 @@ import scala.util.{Failure, Right, Success, Try}
 object Client {
 
   trait ResponseCallback {
-
     def onErrorReceived(errorResponse: ErrorResponse)
 
     def onResultReceived(resultResponse: ResultResponse) = ()
-
   }
 
   private case class PendingRequest(requestMessage: JsonRpcRequestMessage,
                                     callback: ResponseCallback)
 
   private def readJsonRpcMessage(jsonString: String): Either[String, JsonRpcMessage] =
-
     Try(Json.parse(jsonString)) match {
-
       case Failure(exception) =>
-
         Left(s"Invalid JSON: $exception")
-
       case Success(json) =>
-
-        Json.fromJson[JsonRpcMessage](json).fold({ errors =>
-          Left(s"Invalid JSON-RPC message: $errors")
-        }, Right(_))
-
+        Json.fromJson[JsonRpcMessage](json).fold(
+          errors => Left(s"Invalid JSON-RPC message: $errors"),
+          jsonRpcMessage => Right(jsonRpcMessage)
+        )
     }
-
 }
 
 class Client {
+  private[this] var pendingRequests = Map.empty[BigDecimal, PendingRequest]
+  private[this] var commandIdentifier = BigDecimal(0)
 
-  private var pendingRequests = Map.empty[BigDecimal, PendingRequest]
-  private var commandIdentifier = BigDecimal(0)
+  private[this] def deliverToServer(jsonString: String) = ???
 
-  private def deliverToServer(jsonString: String) = ???
-
-  private def notifySubscribers(notification: Notification) = ???
+  private[this] def notifySubscribers(notification: Notification) = ???
 
   def sendCommand(command: Command, responseCallback: ResponseCallback) {
     val jsonRpcRequestMessage = Command.write(command, Some(Right(commandIdentifier)))
@@ -60,25 +51,15 @@ class Client {
   }
 
   def yourMessageHandler(jsonString: String) {
-
     readJsonRpcMessage(jsonString) match {
-
       case Left(error) =>
-
         sys.error(error)
-
       case Right(jsonRpcMessage) => jsonRpcMessage match {
-
         case jsonRpcRequestMessage: JsonRpcRequestMessage =>
-
           sys.error(s"Received $jsonRpcRequestMessage")
-
         case jsonRpcRequestMessageBatch: JsonRpcRequestMessageBatch =>
-
           sys.error(s"Received $jsonRpcRequestMessageBatch")
-
         case jsonRpcResponseMessage: JsonRpcResponseMessage =>
-
           jsonRpcResponseMessage.id.fold {
             sys.error(s"JSON-RPC message ID missing, jsonRpcResponseMessage" +
               s".eitherErrorOrResult=${jsonRpcResponseMessage.eitherErrorOrResult}")
@@ -97,26 +78,17 @@ class Client {
                 ).fold({ errors =>
                   sys.error(s"Invalid Response: $errors")
                 }, {
-
                   case Left(errorResponse) =>
-
                     pendingRequest.callback.onErrorReceived(errorResponse)
-
                   case Right(resultResponse) =>
-
                     pendingRequest.callback.onResultReceived(resultResponse)
-
                 })
               }
             }
           }
-
         case jsonRpcResponseMessageBatch: JsonRpcResponseMessageBatch =>
-
           sys.error(s"Received $jsonRpcResponseMessageBatch")
-
         case jsonRpcNotificationMessage: JsonRpcNotificationMessage =>
-
           Notification.read(jsonRpcNotificationMessage).fold {
             sys.error(s"No notification type exists with method" +
               s"=${jsonRpcNotificationMessage.method}")
@@ -124,11 +96,7 @@ class Client {
             sys.error(s"Invalid Notification: $errors")
           }, notifySubscribers
           ))
-
       }
-
     }
-
   }
-
 }
