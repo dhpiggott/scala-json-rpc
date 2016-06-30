@@ -1,6 +1,3 @@
-/*
- * Copyright (C) 2015 David Piggott <https://www.dhpcs.com>
- */
 package com.dhpcs.json
 
 import org.scalatest.{FunSpecLike, Matchers}
