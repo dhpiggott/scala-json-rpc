@@ -52,7 +52,7 @@ object Message {
 
 }
 
-abstract class CommandCompanion[A] {
+trait CommandCompanion[A] {
   protected[this] val CommandTypeFormats: Seq[MethodFormat[_ <: A]]
 
   def read(jsonRpcRequestMessage: JsonRpcRequestMessage): Option[JsResult[A]] =
@@ -81,7 +81,7 @@ case class ErrorResponse(code: Int,
                          message: String,
                          data: Option[JsValue] = None)
 
-abstract class ResponseCompanion[A] {
+trait ResponseCompanion[A] {
   protected[this] val ResponseFormats: Seq[MethodFormat[_ <: A]]
 
   def read(jsonRpcResponseMessage: JsonRpcResponseMessage, method: String): JsResult[Either[ErrorResponse, A]] =
@@ -111,7 +111,7 @@ abstract class ResponseCompanion[A] {
   }
 }
 
-abstract class NotificationCompanion[A] {
+trait NotificationCompanion[A] {
   protected[this] val NotificationFormats: Seq[MethodFormat[_ <: A]]
 
   def read(jsonRpcNotificationMessage: JsonRpcNotificationMessage): Option[JsResult[A]] =

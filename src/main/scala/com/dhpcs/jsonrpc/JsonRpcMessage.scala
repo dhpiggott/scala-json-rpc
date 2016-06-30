@@ -39,7 +39,7 @@ object JsonRpcMessage {
   }
 }
 
-abstract class JsonRpcMessageCompanion {
+trait JsonRpcMessageCompanion {
   implicit val IdFormat: Format[Either[String, BigDecimal]] = eitherValueFormat[String, BigDecimal]
   implicit val ParamsFormat: Format[Either[JsArray, JsObject]] = eitherValueFormat[JsArray, JsObject]
 
