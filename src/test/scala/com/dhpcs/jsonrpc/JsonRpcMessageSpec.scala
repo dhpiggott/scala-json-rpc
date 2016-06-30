@@ -1,7 +1,7 @@
 package com.dhpcs.jsonrpc
 
 import com.dhpcs.json.FormatBehaviors
-import org.scalatest._
+import org.scalatest.{FunSpec, Matchers}
 import play.api.data.validation.ValidationError
 import play.api.libs.json._
 
