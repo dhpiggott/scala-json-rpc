@@ -53,7 +53,7 @@ object Message {
 }
 
 abstract class CommandCompanion[A] {
-  val CommandTypeFormats: Seq[MethodFormat[_ <: A]]
+  protected[this] val CommandTypeFormats: Seq[MethodFormat[_ <: A]]
 
   def read(jsonRpcRequestMessage: JsonRpcRequestMessage): Option[JsResult[A]] =
     CommandTypeFormats.find(_.methodName == jsonRpcRequestMessage.method).map(
@@ -82,7 +82,7 @@ case class ErrorResponse(code: Int,
                          data: Option[JsValue] = None)
 
 abstract class ResponseCompanion[A] {
-  val ResponseFormats: Seq[MethodFormat[_ <: A]]
+  protected[this] val ResponseFormats: Seq[MethodFormat[_ <: A]]
 
   def read(jsonRpcResponseMessage: JsonRpcResponseMessage, method: String): JsResult[Either[ErrorResponse, A]] =
     jsonRpcResponseMessage.eitherErrorOrResult.fold(
@@ -112,7 +112,7 @@ abstract class ResponseCompanion[A] {
 }
 
 abstract class NotificationCompanion[A] {
-  val NotificationFormats: Seq[MethodFormat[_ <: A]]
+  protected[this] val NotificationFormats: Seq[MethodFormat[_ <: A]]
 
   def read(jsonRpcNotificationMessage: JsonRpcNotificationMessage): Option[JsResult[A]] =
     NotificationFormats.find(_.methodName == jsonRpcNotificationMessage.method).map(
