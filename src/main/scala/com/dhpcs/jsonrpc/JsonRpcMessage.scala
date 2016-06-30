@@ -43,24 +43,24 @@ abstract class JsonRpcMessageCompanion {
   implicit val IdFormat: Format[Either[String, BigDecimal]] = eitherValueFormat[String, BigDecimal]
   implicit val ParamsFormat: Format[Either[JsArray, JsObject]] = eitherValueFormat[JsArray, JsObject]
 
-  protected[this] def eitherObjectFormat[L, R](leftKey: String, rightKey: String)
-                                              (implicit leftFormat: Format[L],
-                                               rightFormat: Format[R]): Format[Either[L, R]] =
+  protected[this] def eitherObjectFormat[A, B](leftKey: String, rightKey: String)
+                                              (implicit leftFormat: Format[A],
+                                               rightFormat: Format[B]): Format[Either[A, B]] =
     OFormat(
-      (__ \ rightKey).read(rightFormat).map(b => Right(b): Either[L, R]) orElse
-        (__ \ leftKey).read(leftFormat).map(a => Left(a): Either[L, R]),
-      OWrites[Either[L, R]] {
+      (__ \ rightKey).read(rightFormat).map(b => Right(b): Either[A, B]) orElse
+        (__ \ leftKey).read(leftFormat).map(a => Left(a): Either[A, B]),
+      OWrites[Either[A, B]] {
         case Right(rightValue) => Json.obj(rightKey -> rightFormat.writes(rightValue))
         case Left(leftValue) => Json.obj(leftKey -> leftFormat.writes(leftValue))
       }
     )
 
-  protected[this] def eitherValueFormat[L, R](implicit leftFormat: Format[L],
-                                              rightFormat: Format[R]): Format[Either[L, R]] =
+  protected[this] def eitherValueFormat[A, B](implicit leftFormat: Format[A],
+                                              rightFormat: Format[B]): Format[Either[A, B]] =
     Format(
-      __.read(rightFormat).map(b => Right(b): Either[L, R]) orElse
-        __.read(leftFormat).map(a => Left(a): Either[L, R]),
-      Writes[Either[L, R]] {
+      __.read(rightFormat).map(b => Right(b): Either[A, B]) orElse
+        __.read(leftFormat).map(a => Left(a): Either[A, B]),
+      Writes[Either[A, B]] {
         case Right(rightValue) => rightFormat.writes(rightValue)
         case Left(leftValue) => leftFormat.writes(leftValue)
       }
