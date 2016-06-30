@@ -40,34 +40,28 @@ object JsonRpcMessage {
 }
 
 abstract class JsonRpcMessageCompanion {
-  implicit val IdFormat = eitherValueFormat[String, BigDecimal]
-  implicit val ParamsFormat = eitherValueFormat[JsArray, JsObject]
+  implicit val IdFormat: Format[Either[String, BigDecimal]] = eitherValueFormat[String, BigDecimal]
+  implicit val ParamsFormat: Format[Either[JsArray, JsObject]] = eitherValueFormat[JsArray, JsObject]
 
   def eitherObjectFormat[L, R](leftKey: String, rightKey: String)
-                              (implicit leftFormat: Format[L], rightFormat: Format[R]) =
+                              (implicit leftFormat: Format[L], rightFormat: Format[R]): Format[Either[L, R]] =
     OFormat(
-
       (__ \ rightKey).read(rightFormat).map(b => Right(b): Either[L, R]) orElse
         (__ \ leftKey).read(leftFormat).map(a => Left(a): Either[L, R]),
-
       OWrites[Either[L, R]] {
         case Right(rightValue) => Json.obj(rightKey -> rightFormat.writes(rightValue))
         case Left(leftValue) => Json.obj(leftKey -> leftFormat.writes(leftValue))
       }
-
     )
 
-  def eitherValueFormat[L, R](implicit leftFormat: Format[L], rightFormat: Format[R]) =
+  def eitherValueFormat[L, R](implicit leftFormat: Format[L], rightFormat: Format[R]): Format[Either[L, R]] =
     Format(
-
       __.read(rightFormat).map(b => Right(b): Either[L, R]) orElse
         __.read(leftFormat).map(a => Left(a): Either[L, R]),
-
       Writes[Either[L, R]] {
         case Right(rightValue) => rightFormat.writes(rightValue)
         case Left(leftValue) => leftFormat.writes(leftValue)
       }
-
     )
 }
 
@@ -97,7 +91,8 @@ case class JsonRpcRequestMessageBatch(messages: Seq[Either[JsonRpcNotificationMe
 }
 
 object JsonRpcRequestMessageBatch extends JsonRpcMessageCompanion {
-  implicit val RequestOrNotificationFormat = eitherValueFormat[JsonRpcNotificationMessage, JsonRpcRequestMessage]
+  implicit val RequestOrNotificationFormat: Format[Either[JsonRpcNotificationMessage, JsonRpcRequestMessage]]
+  = eitherValueFormat[JsonRpcNotificationMessage, JsonRpcRequestMessage]
 
   implicit val JsonRpcRequestMessageBatchFormat: Format[JsonRpcRequestMessageBatch] = Format(
     Reads(
@@ -125,7 +120,7 @@ object JsonRpcResponseError {
                                               message: String,
                                               data: Option[JsValue]) extends JsonRpcResponseError
 
-  private val RealJsonRpcResponseErrorFormat = Json.format[RealJsonRpcResponseError]
+  private val RealJsonRpcResponseErrorFormat: Format[RealJsonRpcResponseError] = Json.format[RealJsonRpcResponseError]
 
   implicit val JsonRpcResponseErrorFormat: Format[JsonRpcResponseError] = Format(
     Reads(json =>
@@ -158,7 +153,7 @@ object JsonRpcResponseError {
     Some(
       Json.obj(
         ("meaning" -> meaning: (String, JsValueWrapper)) ::
-          error.fold[List[(String, JsValueWrapper)]](Nil)(
+          error.fold[List[(String, JsValueWrapper)]](ifEmpty = Nil)(
             error => List("error" -> error)
           ): _*
       )
@@ -173,42 +168,42 @@ object JsonRpcResponseError {
     data
   )
 
-  def parseError(exception: Throwable) = JsonRpcResponseError(
+  def parseError(exception: Throwable): JsonRpcResponseError = JsonRpcResponseError(
     ParseErrorCode,
     "Parse error",
     "Invalid JSON was received by the server.\nAn error occurred on the server while parsing the JSON text.",
     Some(JsString(exception.getMessage))
   )
 
-  def invalidRequest(errors: Seq[(JsPath, Seq[ValidationError])]) = JsonRpcResponseError(
+  def invalidRequest(errors: Seq[(JsPath, Seq[ValidationError])]): JsonRpcResponseError = JsonRpcResponseError(
     InvalidRequestCode,
     "Invalid Request",
     "The JSON sent is not a valid Request object.",
     Some(JsError.toFlatJson(errors))
   )
 
-  def methodNotFound(method: String) = JsonRpcResponseError(
+  def methodNotFound(method: String): JsonRpcResponseError = JsonRpcResponseError(
     MethodNotFoundCode,
     "Method not found",
     "The method does not exist / is not available.",
     Some(JsString( s"""The method "$method" is not implemented."""))
   )
 
-  def invalidParams(errors: Seq[(JsPath, Seq[ValidationError])]) = JsonRpcResponseError(
+  def invalidParams(errors: Seq[(JsPath, Seq[ValidationError])]): JsonRpcResponseError = JsonRpcResponseError(
     InvalidParamsCode,
     "Invalid params",
     "Invalid method parameter(s).",
     Some(JsError.toFlatJson(errors))
   )
 
-  def internalError(error: Option[JsValue] = None) = JsonRpcResponseError(
+  def internalError(error: Option[JsValue] = None): JsonRpcResponseError = JsonRpcResponseError(
     InternalErrorCode,
     "Invalid params",
     "Internal JSON-RPC error.",
     error
   )
 
-  def serverError(code: Int, error: Option[JsValue] = None) = {
+  def serverError(code: Int, error: Option[JsValue] = None): JsonRpcResponseError = {
     require(code >= ServerErrorCodeFloor && code <= ServerErrorCodeCeiling)
     JsonRpcResponseError(
       InternalErrorCode,
@@ -220,7 +215,7 @@ object JsonRpcResponseError {
 
   def applicationError(code: Int,
                        message: String,
-                       data: Option[JsValue] = None) = {
+                       data: Option[JsValue] = None): JsonRpcResponseError = {
     require(code > ReservedErrorCodeCeiling || code < ReservedErrorCodeFloor)
     JsonRpcResponseError(
       code,

@@ -11,14 +11,14 @@ object Message {
                                 (implicit val classTag: ClassTag[A]) {
     val (methodName, formatOrObject) = methodAndFormatOrObject
 
-    def fromJson(json: JsValue) = formatOrObject.fold(
+    def fromJson(json: JsValue): JsResult[A] = formatOrObject.fold(
       commandResponse => JsSuccess(commandResponse),
       format => format.reads(json)
     )
 
-    def matchesInstance(o: Any) = classTag.runtimeClass.isInstance(o)
+    def matchesInstance(o: Any): Boolean = classTag.runtimeClass.isInstance(o)
 
-    def toJson(o: Any) = formatOrObject.fold(
+    def toJson(o: Any): JsValue = formatOrObject.fold(
       _ => Json.obj(),
       format => format.writes(o.asInstanceOf[A])
     )
@@ -31,7 +31,7 @@ object Message {
     extends MethodFormat(methodAndObject._1, Left(methodAndObject._2))(classTag)
 
   object MethodFormats {
-    def apply[A](methodFormats: MethodFormat[_ <: A]*) = {
+    def apply[A](methodFormats: MethodFormat[_ <: A]*): Seq[MethodFormat[_ <: A]] = {
       val methodNames = methodFormats.map(_.methodName)
       require(
         methodNames == methodNames.distinct,
