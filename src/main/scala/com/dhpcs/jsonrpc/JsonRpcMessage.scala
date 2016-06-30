@@ -39,34 +39,6 @@ object JsonRpcMessage {
   }
 }
 
-trait JsonRpcMessageCompanion {
-  implicit val IdFormat: Format[Either[String, BigDecimal]] = eitherValueFormat[String, BigDecimal]
-  implicit val ParamsFormat: Format[Either[JsArray, JsObject]] = eitherValueFormat[JsArray, JsObject]
-
-  protected[this] def eitherObjectFormat[A, B](leftKey: String, rightKey: String)
-                                              (implicit leftFormat: Format[A],
-                                               rightFormat: Format[B]): Format[Either[A, B]] =
-    OFormat(
-      (__ \ rightKey).read(rightFormat).map(b => Right(b): Either[A, B]) orElse
-        (__ \ leftKey).read(leftFormat).map(a => Left(a): Either[A, B]),
-      OWrites[Either[A, B]] {
-        case Right(rightValue) => Json.obj(rightKey -> rightFormat.writes(rightValue))
-        case Left(leftValue) => Json.obj(leftKey -> leftFormat.writes(leftValue))
-      }
-    )
-
-  protected[this] def eitherValueFormat[A, B](implicit leftFormat: Format[A],
-                                              rightFormat: Format[B]): Format[Either[A, B]] =
-    Format(
-      __.read(rightFormat).map(b => Right(b): Either[A, B]) orElse
-        __.read(leftFormat).map(a => Left(a): Either[A, B]),
-      Writes[Either[A, B]] {
-        case Right(rightValue) => rightFormat.writes(rightValue)
-        case Left(leftValue) => leftFormat.writes(leftValue)
-      }
-    )
-}
-
 case class JsonRpcRequestMessage(method: String,
                                  params: Either[JsArray, JsObject],
                                  id: Option[Either[String, BigDecimal]]) extends JsonRpcMessage
@@ -106,6 +78,85 @@ object JsonRpcRequestMessageBatch extends JsonRpcMessageCompanion {
         .writes(a.messages)
     )
   )
+}
+
+case class JsonRpcResponseMessage(eitherErrorOrResult: Either[JsonRpcResponseError, JsValue],
+                                  id: Option[Either[String, BigDecimal]]) extends JsonRpcMessage
+
+object JsonRpcResponseMessage extends JsonRpcMessageCompanion {
+  implicit val JsonRpcResponseMessageFormat: Format[JsonRpcResponseMessage] = (
+    (__ \ "jsonrpc").format(verifying[String](_ == JsonRpcMessage.Version)) and
+      __.format(eitherObjectFormat[JsonRpcResponseError, JsValue]("error", "result")) and
+      (__ \ "id").format(Format.optionWithNull[Either[String, BigDecimal]])
+    ) ((_, eitherErrorOrResult, id) =>
+    JsonRpcResponseMessage(eitherErrorOrResult, id),
+    jsonRpcResponseMessage =>
+      (JsonRpcMessage.Version,
+        jsonRpcResponseMessage.eitherErrorOrResult,
+        jsonRpcResponseMessage.id)
+  )
+}
+
+case class JsonRpcResponseMessageBatch(messages: Seq[JsonRpcResponseMessage]) extends JsonRpcMessage {
+  require(messages.nonEmpty)
+}
+
+object JsonRpcResponseMessageBatch extends JsonRpcMessageCompanion {
+  implicit val JsonRpcResponseMessageBatchFormat: Format[JsonRpcResponseMessageBatch] = Format(
+    Reads(
+      json => Reads.of[Seq[JsonRpcResponseMessage]](verifying(_.nonEmpty))
+        .reads(json).map(JsonRpcResponseMessageBatch(_))
+    ),
+    Writes(
+      a => Writes.of[Seq[JsonRpcResponseMessage]]
+        .writes(a.messages)
+    )
+  )
+}
+
+case class JsonRpcNotificationMessage(method: String,
+                                      params: Either[JsArray, JsObject]) extends JsonRpcMessage
+
+object JsonRpcNotificationMessage extends JsonRpcMessageCompanion {
+  implicit val JsonRpcNotificationMessageFormat: Format[JsonRpcNotificationMessage] = (
+    (__ \ "jsonrpc").format(verifying[String](_ == JsonRpcMessage.Version)) and
+      (__ \ "method").format[String] and
+      (__ \ "params").format[Either[JsArray, JsObject]]
+    ) ((_, method, params) =>
+    JsonRpcNotificationMessage(method, params),
+    jsonRpcNotificationMessage =>
+      (JsonRpcMessage.Version,
+        jsonRpcNotificationMessage.method,
+        jsonRpcNotificationMessage.params)
+  )
+}
+
+trait JsonRpcMessageCompanion {
+  implicit val IdFormat: Format[Either[String, BigDecimal]] = eitherValueFormat[String, BigDecimal]
+  implicit val ParamsFormat: Format[Either[JsArray, JsObject]] = eitherValueFormat[JsArray, JsObject]
+
+  protected[this] def eitherObjectFormat[A, B](leftKey: String, rightKey: String)
+                                              (implicit leftFormat: Format[A],
+                                               rightFormat: Format[B]): Format[Either[A, B]] =
+    OFormat(
+      (__ \ rightKey).read(rightFormat).map(b => Right(b): Either[A, B]) orElse
+        (__ \ leftKey).read(leftFormat).map(a => Left(a): Either[A, B]),
+      OWrites[Either[A, B]] {
+        case Right(rightValue) => Json.obj(rightKey -> rightFormat.writes(rightValue))
+        case Left(leftValue) => Json.obj(leftKey -> leftFormat.writes(leftValue))
+      }
+    )
+
+  protected[this] def eitherValueFormat[A, B](implicit leftFormat: Format[A],
+                                              rightFormat: Format[B]): Format[Either[A, B]] =
+    Format(
+      __.read(rightFormat).map(b => Right(b): Either[A, B]) orElse
+        __.read(leftFormat).map(a => Left(a): Either[A, B]),
+      Writes[Either[A, B]] {
+        case Right(rightValue) => rightFormat.writes(rightValue)
+        case Left(leftValue) => leftFormat.writes(leftValue)
+      }
+    )
 }
 
 sealed trait JsonRpcResponseError {
@@ -225,55 +276,4 @@ object JsonRpcResponseError {
       data
     )
   }
-}
-
-case class JsonRpcResponseMessage(eitherErrorOrResult: Either[JsonRpcResponseError, JsValue],
-                                  id: Option[Either[String, BigDecimal]]) extends JsonRpcMessage
-
-object JsonRpcResponseMessage extends JsonRpcMessageCompanion {
-  implicit val JsonRpcResponseMessageFormat: Format[JsonRpcResponseMessage] = (
-    (__ \ "jsonrpc").format(verifying[String](_ == JsonRpcMessage.Version)) and
-      __.format(eitherObjectFormat[JsonRpcResponseError, JsValue]("error", "result")) and
-      (__ \ "id").format(Format.optionWithNull[Either[String, BigDecimal]])
-    ) ((_, eitherErrorOrResult, id) =>
-    JsonRpcResponseMessage(eitherErrorOrResult, id),
-    jsonRpcResponseMessage =>
-      (JsonRpcMessage.Version,
-        jsonRpcResponseMessage.eitherErrorOrResult,
-        jsonRpcResponseMessage.id)
-  )
-}
-
-case class JsonRpcResponseMessageBatch(messages: Seq[JsonRpcResponseMessage]) extends JsonRpcMessage {
-  require(messages.nonEmpty)
-}
-
-object JsonRpcResponseMessageBatch extends JsonRpcMessageCompanion {
-  implicit val JsonRpcResponseMessageBatchFormat: Format[JsonRpcResponseMessageBatch] = Format(
-    Reads(
-      json => Reads.of[Seq[JsonRpcResponseMessage]](verifying(_.nonEmpty))
-        .reads(json).map(JsonRpcResponseMessageBatch(_))
-    ),
-    Writes(
-      a => Writes.of[Seq[JsonRpcResponseMessage]]
-        .writes(a.messages)
-    )
-  )
-}
-
-case class JsonRpcNotificationMessage(method: String,
-                                      params: Either[JsArray, JsObject]) extends JsonRpcMessage
-
-object JsonRpcNotificationMessage extends JsonRpcMessageCompanion {
-  implicit val JsonRpcNotificationMessageFormat: Format[JsonRpcNotificationMessage] = (
-    (__ \ "jsonrpc").format(verifying[String](_ == JsonRpcMessage.Version)) and
-      (__ \ "method").format[String] and
-      (__ \ "params").format[Either[JsArray, JsObject]]
-    ) ((_, method, params) =>
-    JsonRpcNotificationMessage(method, params),
-    jsonRpcNotificationMessage =>
-      (JsonRpcMessage.Version,
-        jsonRpcNotificationMessage.method,
-        jsonRpcNotificationMessage.params)
-  )
 }
