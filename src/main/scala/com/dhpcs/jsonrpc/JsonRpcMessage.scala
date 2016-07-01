@@ -11,9 +11,9 @@ import scala.collection.Seq
 sealed trait JsonRpcMessage
 
 object JsonRpcMessage {
-  val Version = "2.0"
+  final val Version = "2.0"
 
-  implicit val JsonRpcMessageFormat: Format[JsonRpcMessage] = new Format[JsonRpcMessage] {
+  implicit final val JsonRpcMessageFormat: Format[JsonRpcMessage] = new Format[JsonRpcMessage] {
     override def reads(json: JsValue) = (
       __.read(JsonRpcRequestMessage.JsonRpcRequestMessageFormat).map(m => m: JsonRpcMessage) orElse
         __.read(JsonRpcRequestMessageBatch.JsonRpcRequestMessageBatchFormat).map(m => m: JsonRpcMessage) orElse
@@ -44,7 +44,7 @@ case class JsonRpcRequestMessage(method: String,
                                  id: Option[Either[String, BigDecimal]]) extends JsonRpcMessage
 
 object JsonRpcRequestMessage extends JsonRpcMessageCompanion {
-  implicit val JsonRpcRequestMessageFormat: Format[JsonRpcRequestMessage] = (
+  implicit final val JsonRpcRequestMessageFormat: Format[JsonRpcRequestMessage] = (
     (__ \ "jsonrpc").format(verifying[String](_ == JsonRpcMessage.Version)) and
       (__ \ "method").format[String] and
       (__ \ "params").format[Either[JsArray, JsObject]] and
@@ -65,10 +65,10 @@ case class JsonRpcRequestMessageBatch(messages: Seq[Either[JsonRpcNotificationMe
 }
 
 object JsonRpcRequestMessageBatch extends JsonRpcMessageCompanion {
-  implicit val RequestOrNotificationFormat: Format[Either[JsonRpcNotificationMessage, JsonRpcRequestMessage]]
+  implicit final val RequestOrNotificationFormat: Format[Either[JsonRpcNotificationMessage, JsonRpcRequestMessage]]
   = eitherValueFormat[JsonRpcNotificationMessage, JsonRpcRequestMessage]
 
-  implicit val JsonRpcRequestMessageBatchFormat: Format[JsonRpcRequestMessageBatch] = Format(
+  implicit final val JsonRpcRequestMessageBatchFormat: Format[JsonRpcRequestMessageBatch] = Format(
     Reads(
       json => Reads.of[Seq[Either[JsonRpcNotificationMessage, JsonRpcRequestMessage]]](verifying(_.nonEmpty))
         .reads(json).map(JsonRpcRequestMessageBatch(_))
@@ -84,7 +84,7 @@ case class JsonRpcResponseMessage(eitherErrorOrResult: Either[JsonRpcResponseErr
                                   id: Option[Either[String, BigDecimal]]) extends JsonRpcMessage
 
 object JsonRpcResponseMessage extends JsonRpcMessageCompanion {
-  implicit val JsonRpcResponseMessageFormat: Format[JsonRpcResponseMessage] = (
+  implicit final val JsonRpcResponseMessageFormat: Format[JsonRpcResponseMessage] = (
     (__ \ "jsonrpc").format(verifying[String](_ == JsonRpcMessage.Version)) and
       __.format(eitherObjectFormat[JsonRpcResponseError, JsValue]("error", "result")) and
       (__ \ "id").format(Format.optionWithNull[Either[String, BigDecimal]])
@@ -102,7 +102,7 @@ case class JsonRpcResponseMessageBatch(messages: Seq[JsonRpcResponseMessage]) ex
 }
 
 object JsonRpcResponseMessageBatch extends JsonRpcMessageCompanion {
-  implicit val JsonRpcResponseMessageBatchFormat: Format[JsonRpcResponseMessageBatch] = Format(
+  implicit final val JsonRpcResponseMessageBatchFormat: Format[JsonRpcResponseMessageBatch] = Format(
     Reads(
       json => Reads.of[Seq[JsonRpcResponseMessage]](verifying(_.nonEmpty))
         .reads(json).map(JsonRpcResponseMessageBatch(_))
@@ -118,7 +118,7 @@ case class JsonRpcNotificationMessage(method: String,
                                       params: Either[JsArray, JsObject]) extends JsonRpcMessage
 
 object JsonRpcNotificationMessage extends JsonRpcMessageCompanion {
-  implicit val JsonRpcNotificationMessageFormat: Format[JsonRpcNotificationMessage] = (
+  implicit final val JsonRpcNotificationMessageFormat: Format[JsonRpcNotificationMessage] = (
     (__ \ "jsonrpc").format(verifying[String](_ == JsonRpcMessage.Version)) and
       (__ \ "method").format[String] and
       (__ \ "params").format[Either[JsArray, JsObject]]
@@ -132,8 +132,8 @@ object JsonRpcNotificationMessage extends JsonRpcMessageCompanion {
 }
 
 trait JsonRpcMessageCompanion {
-  implicit val IdFormat: Format[Either[String, BigDecimal]] = eitherValueFormat[String, BigDecimal]
-  implicit val ParamsFormat: Format[Either[JsArray, JsObject]] = eitherValueFormat[JsArray, JsObject]
+  implicit final val IdFormat: Format[Either[String, BigDecimal]] = eitherValueFormat[String, BigDecimal]
+  implicit final val ParamsFormat: Format[Either[JsArray, JsObject]] = eitherValueFormat[JsArray, JsObject]
 
   protected[this] def eitherObjectFormat[A, B](leftKey: String, rightKey: String)
                                               (implicit leftFormat: Format[A],
@@ -173,9 +173,10 @@ object JsonRpcResponseError {
                                               message: String,
                                               data: Option[JsValue]) extends JsonRpcResponseError
 
-  private val RealJsonRpcResponseErrorFormat: Format[RealJsonRpcResponseError] = Json.format[RealJsonRpcResponseError]
+  private final val RealJsonRpcResponseErrorFormat: Format[RealJsonRpcResponseError] =
+    Json.format[RealJsonRpcResponseError]
 
-  implicit val JsonRpcResponseErrorFormat: Format[JsonRpcResponseError] = Format(
+  implicit final val JsonRpcResponseErrorFormat: Format[JsonRpcResponseError] = Format(
     Reads(json =>
       RealJsonRpcResponseErrorFormat.reads(json).map(
         realJsonRpcResponseError => realJsonRpcResponseError: JsonRpcResponseError
@@ -186,16 +187,16 @@ object JsonRpcResponseError {
       ))
   )
 
-  val ReservedErrorCodeFloor = -32768
-  val ReservedErrorCodeCeiling = -32000
+  final val ReservedErrorCodeFloor = -32768
+  final val ReservedErrorCodeCeiling = -32000
 
-  val ParseErrorCode = -32700
-  val InvalidRequestCode = -32600
-  val MethodNotFoundCode = -32601
-  val InvalidParamsCode = -32602
-  val InternalErrorCode = -32603
-  val ServerErrorCodeFloor = -32099
-  val ServerErrorCodeCeiling = -32000
+  final val ParseErrorCode = -32700
+  final val InvalidRequestCode = -32600
+  final val MethodNotFoundCode = -32601
+  final val InvalidParamsCode = -32602
+  final val InternalErrorCode = -32603
+  final val ServerErrorCodeFloor = -32099
+  final val ServerErrorCodeCeiling = -32000
 
   private def apply(code: Int,
                     message: String,

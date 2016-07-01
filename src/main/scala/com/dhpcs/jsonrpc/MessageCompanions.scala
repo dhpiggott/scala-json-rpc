@@ -16,10 +16,7 @@ trait CommandCompanion[A] {
         jsObject => typeChoiceMapping.fromJson(jsObject)
       )
     ).map(_.fold(
-
-      /*
-       * We do this in order to drop any non-root path that may have existed in the success case.
-       */
+      // We do this in order to drop any non-root path that may have existed in the success case.
       invalid => JsError(invalid),
       valid => JsSuccess(valid)
     ))
@@ -39,10 +36,7 @@ trait ResponseCompanion[A] {
       error => JsSuccess(ErrorResponse(error.code, error.message, error.data)).map(Left(_)),
       result => ResponseFormats.find(_.methodName == method).get.fromJson(result).map(Right(_))
     ).fold(
-
-      /*
-       * We do this in order to drop any non-root path that may have existed in the success case.
-       */
+      // We do this in order to drop any non-root path that may have existed in the success case.
       invalid => JsError(invalid),
       valid => JsSuccess(valid)
     )
@@ -79,10 +73,7 @@ trait NotificationCompanion[A] {
         jsObject => typeChoiceMapping.fromJson(jsObject)
       )
     ).map(_.fold(
-
-      /*
-       * We do this in order to drop any non-root path that may have existed in the success case.
-       */
+      // We do this in order to drop any non-root path that may have existed in the success case.
       invalid => JsError(invalid),
       valid => JsSuccess(valid)
     ))
