@@ -10,5 +10,5 @@ publishArtifact in Test := true
 
 libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-json" % "2.3.10",
-  "org.scalatest" %% "scalatest" % "2.2.6" % "test"
+  "org.scalatest" %% "scalatest" % "3.0.0" % "test"
 )
