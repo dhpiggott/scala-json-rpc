@@ -11,10 +11,12 @@ trait CommandCompanion[A] {
 
   def read(jsonRpcRequestMessage: JsonRpcRequestMessage): Option[JsResult[A]] =
     CommandTypeFormats.find(_.methodName == jsonRpcRequestMessage.method).map(
-      typeChoiceMapping => jsonRpcRequestMessage.params.fold(
+      typeChoiceMapping => jsonRpcRequestMessage.params.fold[JsResult[A]](
+        ifEmpty = JsError("command parameters must be given")
+      )(_.fold(
         _ => JsError("command parameters must be named"),
         jsObject => typeChoiceMapping.fromJson(jsObject)
-      )
+      ))
     ).map(_.fold(
       // We do this in order to drop any non-root path that may have existed in the success case.
       invalid => JsError(invalid),
@@ -24,7 +26,7 @@ trait CommandCompanion[A] {
   def write(command: A, id: Option[Either[String, BigDecimal]]): JsonRpcRequestMessage = {
     val mapping = CommandTypeFormats.find(_.matchesInstance(command))
       .getOrElse(sys.error(s"No format found for ${command.getClass}"))
-    JsonRpcRequestMessage(mapping.methodName, Right(mapping.toJson(command).asInstanceOf[JsObject]), id)
+    JsonRpcRequestMessage(mapping.methodName, Some(Right(mapping.toJson(command).asInstanceOf[JsObject])), id)
   }
 }
 

@@ -40,14 +40,14 @@ object JsonRpcMessage {
 }
 
 case class JsonRpcRequestMessage(method: String,
-                                 params: Either[JsArray, JsObject],
+                                 params: Option[Either[JsArray, JsObject]],
                                  id: Option[Either[String, BigDecimal]]) extends JsonRpcMessage
 
 object JsonRpcRequestMessage extends JsonRpcMessageCompanion {
   implicit final val JsonRpcRequestMessageFormat: Format[JsonRpcRequestMessage] = (
     (__ \ "jsonrpc").format(verifying[String](_ == JsonRpcMessage.Version)) and
       (__ \ "method").format[String] and
-      (__ \ "params").format[Either[JsArray, JsObject]] and
+      (__ \ "params").format[Option[Either[JsArray, JsObject]]] and
       (__ \ "id").format(Format.optionWithNull[Either[String, BigDecimal]])
     ) ((_, method, params, id) =>
     JsonRpcRequestMessage(method, params, id),

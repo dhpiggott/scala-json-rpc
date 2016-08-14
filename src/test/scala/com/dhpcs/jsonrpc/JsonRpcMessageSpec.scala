@@ -88,19 +88,6 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
         JsError(List((__ \ "method", List(ValidationError("error.path.missing")))))
       )
     )
-    describe("with params of the wrong type")(
-      it should behave like readError[JsonRpcRequestMessage](
-        Json.parse(
-          """{
-            |  "jsonrpc":"2.0",
-            |  "method":"testMethod",
-            |  "params":"params",
-            |  "id":0
-            |}""".stripMargin
-        ),
-        JsError(List((__ \ "params", List(ValidationError("error.expected.jsarray")))))
-      )
-    )
     describe("without params")(
       it should behave like readError[JsonRpcRequestMessage](
         Json.parse(
@@ -131,12 +118,12 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
       describe("and a null id") {
         implicit val jsonRpcRequestMessage = JsonRpcRequestMessage(
           "testMethod",
-          Left(JsArray(
+          Some(Left(JsArray(
             Seq(
               JsString("param1"),
               JsString("param2")
             )
-          )),
+          ))),
           None
         )
         implicit val jsonRpcRequestMessageJson = Json.parse(
@@ -154,12 +141,12 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
       describe("and a string id") {
         implicit val jsonRpcRequestMessage = JsonRpcRequestMessage(
           "testMethod",
-          Left(JsArray(
+          Some(Left(JsArray(
             Seq(
               JsString("param1"),
               JsString("param2")
             )
-          )),
+          ))),
           Some(Left("one"))
         )
         implicit val jsonRpcRequestMessageJson = Json.parse(
@@ -177,12 +164,12 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
       describe("and a numeric id") {
         implicit val jsonRpcRequestMessage = JsonRpcRequestMessage(
           "testMethod",
-          Left(JsArray(
+          Some(Left(JsArray(
             Seq(
               JsString("param1"),
               JsString("param2")
             )
-          )),
+          ))),
           Some(Right(1))
         )
         implicit val jsonRpcRequestMessageJson = Json.parse(
@@ -199,12 +186,12 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
         describe("with a fractional part") {
           implicit val jsonRpcRequestMessage = JsonRpcRequestMessage(
             "testMethod",
-            Left(JsArray(
+            Some(Left(JsArray(
               Seq(
                 JsString("param1"),
                 JsString("param2")
               )
-            )),
+            ))),
             Some(Right(1.1))
           )
           implicit val jsonRpcRequestMessageJson = Json.parse(
@@ -224,12 +211,12 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
       describe("and a null id") {
         implicit val jsonRpcRequestMessage = JsonRpcRequestMessage(
           "testMethod",
-          Right(JsObject(
+          Some(Right(JsObject(
             Seq(
               "param1" -> JsString("param1"),
               "param2" -> JsString("param2")
             )
-          )),
+          ))),
           None
         )
         implicit val jsonRpcRequestMessageJson = Json.parse(
@@ -247,12 +234,12 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
       describe("and a string id") {
         implicit val jsonRpcRequestMessage = JsonRpcRequestMessage(
           "testMethod",
-          Right(JsObject(
+          Some(Right(JsObject(
             Seq(
               "param1" -> JsString("param1"),
               "param2" -> JsString("param2")
             )
-          )),
+          ))),
           Some(Left("one"))
         )
         implicit val jsonRpcRequestMessageJson = Json.parse(
@@ -270,12 +257,12 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
       describe("and a numeric id") {
         implicit val jsonRpcRequestMessage = JsonRpcRequestMessage(
           "testMethod",
-          Right(JsObject(
+          Some(Right(JsObject(
             Seq(
               "param1" -> JsString("param1"),
               "param2" -> JsString("param2")
             )
-          )),
+          ))),
           Some(Right(1))
         )
         implicit val jsonRpcRequestMessageJson = Json.parse(
@@ -292,12 +279,12 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
         describe("with a fractional part") {
           implicit val jsonRpcRequestMessage = JsonRpcRequestMessage(
             "testMethod",
-            Right(JsObject(
+            Some(Right(JsObject(
               Seq(
                 "param1" -> JsString("param1"),
                 "param2" -> JsString("param2")
               )
-            )),
+            ))),
             Some(Right(1.1))
           )
           implicit val jsonRpcRequestMessageJson = Json.parse(
@@ -347,12 +334,12 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
         Seq(
           Right(JsonRpcRequestMessage(
             "testMethod",
-            Right(JsObject(
+            Some(Right(JsObject(
               Seq(
                 "param1" -> JsString("param1"),
                 "param2" -> JsString("param2")
               )
-            )),
+            ))),
             Some(Right(1))
           ))
         )
@@ -771,7 +758,8 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
           """
             |{
             |  "jsonrpc":"2.0",
-            |  "method":"testMethod","params":"params"
+            |  "method":"testMethod",
+            |  "params":"params"
             |}""".stripMargin
         ),
         JsError(List((__ \ "params", List(ValidationError("error.expected.jsarray")))))
