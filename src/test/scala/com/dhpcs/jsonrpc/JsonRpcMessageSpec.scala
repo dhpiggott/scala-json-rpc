@@ -88,6 +88,37 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
         JsError(List((__ \ "method", List(ValidationError("error.path.missing")))))
       )
     )
+    describe("with params of the wrong type") {
+      implicit val jsonRpcRequestMessage = JsonRpcRequestMessage(
+        "testMethod",
+        None,
+        Some(Right(0))
+      )
+      locally {
+        implicit val jsonRpcRequestMessageJson = Json.parse(
+          """{
+            |  "jsonrpc":"2.0",
+            |  "method":"testMethod",
+            |  "params":"params",
+            |  "id":0
+            |}""".
+            stripMargin
+        )
+        it should behave like read
+      }
+      locally {
+        implicit val jsonRpcRequestMessageJson = Json.parse(
+          """{
+            |  "jsonrpc":"2.0",
+            |  "method":"testMethod",
+            |  "params":null,
+            |  "id":0
+            |}""".
+            stripMargin
+        )
+        it should behave like write
+      }
+    }
     describe("without params")(
       it should behave like readError[JsonRpcRequestMessage](
         Json.parse(
