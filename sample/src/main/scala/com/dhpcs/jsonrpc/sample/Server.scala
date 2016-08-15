@@ -2,13 +2,13 @@ package com.dhpcs.jsonrpc.sample
 
 import com.dhpcs.jsonrpc.sample.Server._
 import com.dhpcs.jsonrpc.sample.models._
-import com.dhpcs.jsonrpc.{ErrorResponse, JsonRpcRequestMessage, JsonRpcResponseError, JsonRpcResponseMessage}
+import com.dhpcs.jsonrpc.ResponseCompanion.ErrorResponse
+import com.dhpcs.jsonrpc.{JsonRpcRequestMessage, JsonRpcResponseError, JsonRpcResponseMessage}
 import play.api.libs.json.Json
 
 import scala.util.{Failure, Random, Success, Try}
 
 object Server {
-
   private def readCommand(jsonString: String):
   (Option[Either[String, BigDecimal]], Either[JsonRpcResponseError, Command]) =
     Try(Json.parse(jsonString)) match {

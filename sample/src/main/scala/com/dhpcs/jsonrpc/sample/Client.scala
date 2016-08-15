@@ -3,6 +3,7 @@ package com.dhpcs.jsonrpc.sample
 import com.dhpcs.jsonrpc._
 import com.dhpcs.jsonrpc.sample.Client._
 import com.dhpcs.jsonrpc.sample.models._
+import com.dhpcs.jsonrpc.ResponseCompanion.ErrorResponse
 import play.api.libs.json.Json
 
 import scala.util.{Failure, Right, Success, Try}

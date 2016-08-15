@@ -2,7 +2,7 @@ play-json-rpc
 =============
 
 A Scala library providing implicit [play-json Formats](https://www.playframework.com/documentation/2.3.x/ScalaJson) for
-[JSON-RPC 2.0](http://www.jsonrpc.org/specification) messages, built on top of the Play! Framework's standalone
+[JSON-RPC 2.0](http://www.jsonrpc.org/specification) messages, built on top of the Play Framework's standalone
 `play-json` library. It does *not* depend on the whole of Play, so the dependency footprint is relatively small and you
 can use it in a wide range of applications – including in Android projects.
 
@@ -14,7 +14,7 @@ Just add the following lines to your `build.sbt`:
 ```scala
 resolvers += "dhpcs at bintray" at "https://dl.bintray.com/dhpcs/maven"
 
-libraryDependencies += "com.dhpcs" %% "play-json-rpc" % "1.0.0"
+libraryDependencies += "com.dhpcs" %% "play-json-rpc" % "1.2.0"
 ```
 
 Gradle dependency
@@ -37,7 +37,7 @@ Then add to the `dependencies` block of your main module's `build.gradle`:
 
 ```groovy
 dependencies {
-    compile 'com.dhpcs:play-json-rpc_2.11:1.0.0'
+    compile 'com.dhpcs:play-json-rpc_2.11:1.2.0'
 }
 ```
 
@@ -52,7 +52,7 @@ Structure
 
       ```scala
       case class JsonRpcRequestMessage(method: String,
-                                       params: Either[JsArray, JsObject],
+                                       params: Option[Either[JsArray, JsObject]],
                                        id: Option[Either[String, BigDecimal]]) extends JsonRpcMessage
       ```
 
@@ -146,7 +146,6 @@ case class AddTransactionCommand(from: Int,
 }
 
 object AddTransactionCommand {
-
   implicit val AddTransactionCommandFormat: Format[AddTransactionCommand] = (
     (JsPath \ "from").format[Int] and
       (JsPath \ "to").format[Int] and
@@ -167,16 +166,13 @@ object AddTransactionCommand {
       addTransactionCommand.description,
       addTransactionCommand.metadata)
     )
-
 }
 
 object Command extends CommandCompanion[Command] {
-
   override val CommandTypeFormats = MethodFormats(
     "updateAccount" -> Json.format[UpdateAccountCommand],
     "addTransaction" -> Json.format[AddTransactionCommand]
   )
-
 }
 
 sealed trait Response extends Message
@@ -188,12 +184,10 @@ case object UpdateAccountResponse extends ResultResponse
 case class AddTransactionResponse(created: Long) extends ResultResponse
 
 object Response extends ResponseCompanion[ResultResponse] {
-
   override val ResponseFormats = MethodFormats(
     "updateAccount" -> UpdateAccountResponse,
     "addTransaction" -> Json.format[AddTransactionResponse]
   )
-
 }
 
 sealed trait Notification extends Message
@@ -203,12 +197,10 @@ case class AccountUpdatedNotification(account: Account) extends Notification
 case class TransactionAddedNotification(transaction: Transaction) extends Notification
 
 object Notification extends NotificationCompanion[Notification] {
-
   override val NotificationFormats = MethodFormats(
     "accountUpdated" -> Json.format[AccountUpdatedNotification],
     "transactionAdded" -> Json.format[TransactionAddedNotification]
   )
-
 }
 ```
 
@@ -223,181 +215,128 @@ sample/src/main/scala/com/dhpcs/jsonrpc/sample/Server.scala).
 
 ```scala
 object Server {
-
   private def readCommand(jsonString: String):
   (Option[Either[String, BigDecimal]], Either[JsonRpcResponseError, Command]) =
-
     Try(Json.parse(jsonString)) match {
-
       case Failure(exception) =>
-
         None -> Left(
           JsonRpcResponseError.parseError(exception)
         )
-
       case Success(json) =>
-
         Json.fromJson[JsonRpcRequestMessage](json).fold(
-
           errors => None -> Left(
             JsonRpcResponseError.invalidRequest(errors)
           ),
-
           jsonRpcRequestMessage =>
-
             Command.read(jsonRpcRequestMessage)
               .fold[(Option[Either[String, BigDecimal]], Either[JsonRpcResponseError, Command])](
-
-                jsonRpcRequestMessage.id -> Left(
-                  JsonRpcResponseError.methodNotFound(jsonRpcRequestMessage.method)
-                )
-
-              )(commandJsResult => commandJsResult.fold(
-
+              jsonRpcRequestMessage.id -> Left(
+                JsonRpcResponseError.methodNotFound(jsonRpcRequestMessage.method)
+              )
+            )(commandJsResult => commandJsResult.fold(
               errors => jsonRpcRequestMessage.id -> Left(
                 JsonRpcResponseError.invalidParams(errors)
               ),
-
               command => jsonRpcRequestMessage.id -> Right(
                 command
               )
-
             ))
-
         )
-
     }
-
 }
 
 class Server {
+  private[this] def deliverToSender(jsonString: String) = ???
 
-  private def deliverToSender(jsonString: String) = ???
+  private[this] def deliverToSubscribers(jsonString: String) = ???
 
-  private def deliverToSubscribers(jsonString: String) = ???
-
-  def yourMessageHandler(jsonString: String) {
-
-    readCommand(jsonString) match {
-
-      case (id, Left(jsonRpcResponseError)) =>
-
-        val jsonResponseString = Json.stringify(Json.toJson(
-          JsonRpcResponseMessage(Left(jsonRpcResponseError), id)
-        ))
-
-        deliverToSender(jsonResponseString)
-
-      case (id, Right(command)) =>
-
-        command match {
-
-          case UpdateAccountCommand(account) =>
-
-            // Omitted: validate and handle the command
-            // ...
-            // For demonstration purposes we'll toss a coin to decide whether to reject the command
-            if (Random.nextBoolean()) {
-
-              // Rejecting a command:
-
-              val jsonResponseString = Json.stringify(Json.toJson(
-                Response.write(
-                  Left(
-                    ErrorResponse(
-                      JsonRpcResponseError.ReservedErrorCodeFloor - 1,
-                      "Fate does not favour you today"
-                    )
-                  ),
-                  id
-                )
-              ))
-
-              deliverToSender(jsonResponseString)
-
-            } else {
-
-              val jsonResponseString = Json.stringify(Json.toJson(
-                Response.write(
-                  Right(
-                    UpdateAccountResponse
-                  ),
-                  id
-                )
-              ))
-
-              deliverToSender(jsonResponseString)
-
-              val jsonNotificationString = Json.stringify(Json.toJson(
-                Notification.write(
-                  AccountUpdatedNotification(
-                    account
+  def yourMessageHandler(jsonString: String) = readCommand(jsonString) match {
+    case (id, Left(jsonRpcResponseError)) =>
+      val jsonResponseString = Json.stringify(Json.toJson(
+        JsonRpcResponseMessage(Left(jsonRpcResponseError), id)
+      ))
+      deliverToSender(jsonResponseString)
+    case (id, Right(command)) =>
+      command match {
+        case UpdateAccountCommand(account) =>
+          // Omitted: validate and handle the command
+          // ...
+          // For demonstration purposes we'll toss a coin to decide whether to reject the command
+          if (Random.nextBoolean()) {
+            // Rejecting a command:
+            val jsonResponseString = Json.stringify(Json.toJson(
+              Response.write(
+                Left(
+                  ErrorResponse(
+                    JsonRpcResponseError.ReservedErrorCodeFloor - 1,
+                    "Fate does not favour you today"
                   )
+                ),
+                id
+              )
+            ))
+            deliverToSender(jsonResponseString)
+          } else {
+            val jsonResponseString = Json.stringify(Json.toJson(
+              Response.write(
+                Right(
+                  UpdateAccountResponse
+                ),
+                id
+              )
+            ))
+            deliverToSender(jsonResponseString)
+            val jsonNotificationString = Json.stringify(Json.toJson(
+              Notification.write(
+                AccountUpdatedNotification(
+                  account
                 )
-              ))
-
-              deliverToSubscribers(jsonNotificationString)
-
-            }
-
-          case AddTransactionCommand(from, to, value, description, metadata) =>
-
-            // Omitted: validate and handle the command
-            // ...
-            // For demonstration purposes we'll toss a coin to decide whether to reject the command
-            if (Random.nextBoolean()) {
-
-              // Rejecting a command:
-
-              val jsonResponseString = Json.stringify(Json.toJson(
-                Response.write(
-                  Left(
-                    ErrorResponse(
-                      JsonRpcResponseError.ReservedErrorCodeFloor - 1,
-                      "Fate does not favour you today"
-                    )
-                  ),
-                  id
-                )
-              ))
-
-              deliverToSender(jsonResponseString)
-
-            } else {
-
-              val transaction = Transaction(from, to, value, System.currentTimeMillis, description, metadata)
-
-              val jsonResponseString = Json.stringify(Json.toJson(
-                Response.write(
-                  Right(
-                    AddTransactionResponse(
-                      transaction.created
-                    )
-                  ),
-                  id
-                )
-              ))
-
-              deliverToSender(jsonResponseString)
-
-              val jsonNotificationString = Json.stringify(Json.toJson(
-                Notification.write(
-                  TransactionAddedNotification(
-                    transaction
+              )
+            ))
+            deliverToSubscribers(jsonNotificationString)
+          }
+        case AddTransactionCommand(from, to, value, description, metadata) =>
+          // Omitted: validate and handle the command
+          // ...
+          // For demonstration purposes we'll toss a coin to decide whether to reject the command
+          if (Random.nextBoolean()) {
+            // Rejecting a command:
+            val jsonResponseString = Json.stringify(Json.toJson(
+              Response.write(
+                Left(
+                  ErrorResponse(
+                    JsonRpcResponseError.ReservedErrorCodeFloor - 1,
+                    "Fate does not favour you today"
                   )
+                ),
+                id
+              )
+            ))
+            deliverToSender(jsonResponseString)
+          } else {
+            val transaction = Transaction(from, to, value, System.currentTimeMillis, description, metadata)
+            val jsonResponseString = Json.stringify(Json.toJson(
+              Response.write(
+                Right(
+                  AddTransactionResponse(
+                    transaction.created
+                  )
+                ),
+                id
+              )
+            ))
+            deliverToSender(jsonResponseString)
+            val jsonNotificationString = Json.stringify(Json.toJson(
+              Notification.write(
+                TransactionAddedNotification(
+                  transaction
                 )
-              ))
-
-              deliverToSubscribers(jsonNotificationString)
-
-            }
-
-        }
-
-    }
-
+              )
+            ))
+            deliverToSubscribers(jsonNotificationString)
+          }
+      }
   }
-
 }
 ```
 
@@ -416,42 +355,33 @@ sample/src/main/scala/com/dhpcs/jsonrpc/sample/Client.scala).
 object Client {
 
   trait ResponseCallback {
-
     def onErrorReceived(errorResponse: ErrorResponse)
 
     def onResultReceived(resultResponse: ResultResponse) = ()
-
   }
 
   private case class PendingRequest(requestMessage: JsonRpcRequestMessage,
                                     callback: ResponseCallback)
 
   private def readJsonRpcMessage(jsonString: String): Either[String, JsonRpcMessage] =
-
     Try(Json.parse(jsonString)) match {
-
       case Failure(exception) =>
-
         Left(s"Invalid JSON: $exception")
-
       case Success(json) =>
-
-        Json.fromJson[JsonRpcMessage](json).fold({ errors =>
-          Left(s"Invalid JSON-RPC message: $errors")
-        }, Right(_))
-
+        Json.fromJson[JsonRpcMessage](json).fold(
+          errors => Left(s"Invalid JSON-RPC message: $errors"),
+          jsonRpcMessage => Right(jsonRpcMessage)
+        )
     }
-
 }
 
 class Client {
+  private[this] var pendingRequests = Map.empty[BigDecimal, PendingRequest]
+  private[this] var commandIdentifier = BigDecimal(0)
 
-  private var pendingRequests = Map.empty[BigDecimal, PendingRequest]
-  private var commandIdentifier = BigDecimal(0)
+  private[this] def deliverToServer(jsonString: String) = ???
 
-  private def deliverToServer(jsonString: String) = ???
-
-  private def notifySubscribers(notification: Notification) = ???
+  private[this] def notifySubscribers(notification: Notification) = ???
 
   def sendCommand(command: Command, responseCallback: ResponseCallback) {
     val jsonRpcRequestMessage = Command.write(command, Some(Right(commandIdentifier)))
@@ -466,25 +396,15 @@ class Client {
   }
 
   def yourMessageHandler(jsonString: String) {
-
     readJsonRpcMessage(jsonString) match {
-
       case Left(error) =>
-
         sys.error(error)
-
       case Right(jsonRpcMessage) => jsonRpcMessage match {
-
         case jsonRpcRequestMessage: JsonRpcRequestMessage =>
-
           sys.error(s"Received $jsonRpcRequestMessage")
-
         case jsonRpcRequestMessageBatch: JsonRpcRequestMessageBatch =>
-
           sys.error(s"Received $jsonRpcRequestMessageBatch")
-
         case jsonRpcResponseMessage: JsonRpcResponseMessage =>
-
           jsonRpcResponseMessage.id.fold {
             sys.error(s"JSON-RPC message ID missing, jsonRpcResponseMessage" +
               s".eitherErrorOrResult=${jsonRpcResponseMessage.eitherErrorOrResult}")
@@ -503,26 +423,17 @@ class Client {
                 ).fold({ errors =>
                   sys.error(s"Invalid Response: $errors")
                 }, {
-
                   case Left(errorResponse) =>
-
                     pendingRequest.callback.onErrorReceived(errorResponse)
-
                   case Right(resultResponse) =>
-
                     pendingRequest.callback.onResultReceived(resultResponse)
-
                 })
               }
             }
           }
-
         case jsonRpcResponseMessageBatch: JsonRpcResponseMessageBatch =>
-
           sys.error(s"Received $jsonRpcResponseMessageBatch")
-
         case jsonRpcNotificationMessage: JsonRpcNotificationMessage =>
-
           Notification.read(jsonRpcNotificationMessage).fold {
             sys.error(s"No notification type exists with method" +
               s"=${jsonRpcNotificationMessage.method}")
@@ -530,13 +441,9 @@ class Client {
             sys.error(s"Invalid Notification: $errors")
           }, notifySubscribers
           ))
-
       }
-
     }
-
   }
-
 }
 ```
 
@@ -603,7 +510,7 @@ to your dependencies, just as you do not need to use the gradle-android-scala pl
    Android does not support Java 8 features, changing the dependency to 2.4.0 will result in build time errors in
    Android projects.
 
-   Fixing the dependency at 2.3.10 introduces its own problems in that Play! 2.4.x+ projects will override the
+   Fixing the dependency at 2.3.10 introduces its own problems in that Play 2.4.x+ projects will override the
    `play-json` dependency to 2.4.x, which can result in runtime errors if the runtime play-json version e.g. does not
    have methods that were present in 2.3.10 which `play-json-rpc` is compiled against.
 
@@ -634,9 +541,9 @@ To make use of these classes in your dependent project's tests, you would set yo
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.dhpcs" %% "play-json-rpc" % "1.0.0",
-  "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test",
-  "com.dhpcs" %% "play-json-rpc" % "1.0.0" % "test->test"
+  "com.dhpcs" %% "play-json-rpc" % "1.2.0",
+  "org.scalatest" %% "scalatest" % "3.0.0" % Test,
+  "com.dhpcs" %% "play-json-rpc" % "1.2.0" % "test->test"
 )
 ```
 
@@ -654,7 +561,7 @@ or
 
 * Continue using the Bintray artifacts but change the SBT dependency line to look like this:
   ```scala
-   "com.dhpcs" %% "play-json-rpc" % "1.0.0" % "test" classifier("tests")
+   "com.dhpcs" %% "play-json-rpc" % "1.2.0" % "test" classifier("tests")
   ```
 
  With this the disadvantage is that the main configuration of the POM produced by your dependent project will
@@ -670,18 +577,4 @@ The tests are in `JsonRpcMessageSpec.scala` and can be run with `sbt test`.
 License
 -------
 
-```
-Copyright 2015 David Piggott (https://www.dhpcs.com).
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-   http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-```
+play-json-rpc is licensed under the Apache 2 License.

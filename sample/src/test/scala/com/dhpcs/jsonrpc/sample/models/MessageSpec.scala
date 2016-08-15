@@ -1,7 +1,8 @@
 package com.dhpcs.jsonrpc.sample.models
 
 import com.dhpcs.json.JsResultUniformity
-import com.dhpcs.jsonrpc.{ErrorResponse, JsonRpcNotificationMessage, JsonRpcRequestMessage, JsonRpcResponseMessage}
+import com.dhpcs.jsonrpc.ResponseCompanion.ErrorResponse
+import com.dhpcs.jsonrpc.{JsonRpcNotificationMessage, JsonRpcRequestMessage, JsonRpcResponseMessage}
 import org.scalatest.OptionValues._
 import org.scalatest._
 import play.api.data.validation.ValidationError
@@ -14,7 +15,7 @@ class MessageSpec extends FunSpec with Matchers {
       it should behave like commandReadError(
         JsonRpcRequestMessage(
           "invalidMethod",
-          Right(Json.obj()),
+          Some(Right(Json.obj())),
           Some(Right(1))
         ),
         None
@@ -25,7 +26,7 @@ class MessageSpec extends FunSpec with Matchers {
         it should behave like commandReadError(
           JsonRpcRequestMessage(
             "addTransaction",
-            Left(Json.arr()),
+            Some(Left(Json.arr())),
             Some(Right(1))
           ),
           Some(JsError(
@@ -39,7 +40,7 @@ class MessageSpec extends FunSpec with Matchers {
         it should behave like commandReadError(
           JsonRpcRequestMessage(
             "addTransaction",
-            Right(Json.obj()),
+            Some(Right(Json.obj())),
             Some(Right(1))
           ),
           Some(JsError(
@@ -65,7 +66,7 @@ class MessageSpec extends FunSpec with Matchers {
       implicit val id = Right(BigDecimal(1))
       implicit val jsonRpcRequestMessage = JsonRpcRequestMessage(
         "addTransaction",
-        Right(
+        Some(Right(
           Json.obj(
             "from" -> 0,
             "to" -> 1,
@@ -75,7 +76,7 @@ class MessageSpec extends FunSpec with Matchers {
               "property" -> "The TARDIS"
             )
           )
-        ),
+        )),
         Some(Right(1))
       )
       it should behave like commandRead
