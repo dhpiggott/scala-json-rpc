@@ -12,7 +12,7 @@ SBT dependency
 Just add the following lines to your `build.sbt`:
 
 ```scala
-resolvers += "dhpcs at bintray" at "https://dl.bintray.com/dhpcs/maven"
+resolvers += Resolver.bintrayRepo("dhpcs", "maven")
 
 libraryDependencies += "com.dhpcs" %% "play-json-rpc" % "1.2.0"
 ```
@@ -555,7 +555,7 @@ Until the SBT issue is fixed you have two options to workaround this:
 * Remove the Bintray repository from your `build.sbt`, clone `play-json-rpc` and deploy the version you want to use
 directly to your local Ivy cache by running `sbt publishLocal`.
 
- With this the disadvantage  is that you have to clone and deploy `play-json-rpc` yourself.
+ With this the disadvantage is that you have to clone and deploy `play-json-rpc` yourself.
 
 or
 
