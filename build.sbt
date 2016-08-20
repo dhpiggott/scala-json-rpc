@@ -4,8 +4,7 @@ scalaVersion in ThisBuild := "2.11.8"
 
 lazy val commonSettings = Seq(
   scalaVersion := "2.11.8",
-  organization := "com.dhpcs",
-  version := "1.2.0"
+  organization := "com.dhpcs"
 )
 
 lazy val playJsonRpcTestkit = project.in(file("testkit"))
