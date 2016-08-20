@@ -3,7 +3,6 @@ import sbt.Keys._
 scalaVersion in ThisBuild := "2.11.8"
 
 lazy val commonSettings = Seq(
-  scalaVersion := "2.11.8",
   organization := "com.dhpcs"
 )
 
