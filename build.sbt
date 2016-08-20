@@ -27,10 +27,10 @@ lazy val playJsonRpc = project.in(file("play-json-rpc"))
   ))
   .dependsOn(playJsonRpcTestkit % Test)
 
-lazy val sample = project.in(file("sample"))
+lazy val playJsonRpcExample = project.in(file("example"))
   .settings(commonSettings)
   .settings(Seq(
-    name := "play-json-rpc-sample"
+    name := "play-json-rpc-example"
   ))
   .dependsOn(playJsonRpc)
   .dependsOn(playJsonRpcTestkit)

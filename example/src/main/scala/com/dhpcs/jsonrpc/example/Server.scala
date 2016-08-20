@@ -1,7 +1,7 @@
-package com.dhpcs.jsonrpc.sample
+package com.dhpcs.jsonrpc.example
 
-import com.dhpcs.jsonrpc.sample.Server._
-import com.dhpcs.jsonrpc.sample.models._
+import com.dhpcs.jsonrpc.example.Server._
+import com.dhpcs.jsonrpc.example.models._
 import com.dhpcs.jsonrpc.ResponseCompanion.ErrorResponse
 import com.dhpcs.jsonrpc.{JsonRpcRequestMessage, JsonRpcResponseError, JsonRpcResponseMessage}
 import play.api.libs.json.Json

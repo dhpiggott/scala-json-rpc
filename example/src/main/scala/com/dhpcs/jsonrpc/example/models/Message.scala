@@ -1,4 +1,4 @@
-package com.dhpcs.jsonrpc.sample.models
+package com.dhpcs.jsonrpc.example.models
 
 import com.dhpcs.jsonrpc.Message.MethodFormats
 import com.dhpcs.jsonrpc._

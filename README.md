@@ -96,12 +96,12 @@ Structure
 Example usage
 -------------
 
-This is best demonstrated by the sample project (located in the `sample` directory).
+This is best demonstrated by the example project (located in the `example` directory).
 
-The best way to get started with `play-json-rpc` in your project is to copy the sample project and then
-add/change/remove domain and message types as necessary. You might want to copy and modify the sample tests too.
+The best way to get started with `play-json-rpc` in your project is to copy the example project and then
+add/change/remove domain and message types as necessary. You might want to copy and modify the example tests too.
 
-The sample project includes:
+The example project includes:
 
 1. Two domain types with JSON Formats, `Account` and `Transaction` (definitions omitted for brevity here because they
    are fairly typical `play-json` usage).
@@ -123,12 +123,12 @@ The sample project includes:
 4. Partial code for a client that sends messages of type `JsonRpcRequestMessage` and receives messages of type
    `JsonRpcResponseMessage` and `JsonRpcNotificationMessage`.
 
-### Sample message types
+### Example message types
 
 The types that you should define as a user of `play-json-rpc` will look something like the following.
 
-The full definition with imports is at [sample/src/main/scala/com/dhpcs/jsonrpc/sample/models/Message.scala](
-sample/src/main/scala/com/dhpcs/jsonrpc/sample/models/Message.scala).
+The full definition with imports is at [example/src/main/scala/com/dhpcs/jsonrpc/example/models/Message.scala](
+example/src/main/scala/com/dhpcs/jsonrpc/example/models/Message.scala).
 
 ```scala
 sealed trait Message
@@ -204,14 +204,14 @@ object Notification extends NotificationCompanion[Notification] {
 }
 ```
 
-### Sample server code
+### Example server code
 
 Note that `readCommand` is not included in `play-json-rpc` itself because different use cases may have different
-directionality. The following sample receives commands and sends responses and notifications; other use cases might
+directionality. The following example receives commands and sends responses and notifications; other use cases might
 receive commands and notifications but only send responses.
 
-The full definition with imports is at [sample/src/main/scala/com/dhpcs/jsonrpc/sample/Server.scala](
-sample/src/main/scala/com/dhpcs/jsonrpc/sample/Server.scala).
+The full definition with imports is at [example/src/main/scala/com/dhpcs/jsonrpc/example/Server.scala](
+example/src/main/scala/com/dhpcs/jsonrpc/example/Server.scala).
 
 ```scala
 object Server {
@@ -340,16 +340,16 @@ class Server {
 }
 ```
 
-### Sample client code
+### Example client code
 
-Note that `readJsonRpcMessage` is not included in `play-json-rpc` itself, for the same reason that the server sample's
+Note that `readJsonRpcMessage` is not included in `play-json-rpc` itself, for the same reason that the server example's
 `readCommand` is not.
 
-Note also that in the real project this sample is based on, there is extra code that ensures `pendingRequests` etc. is
-only accessed by one thread. That code was removed to simplify this sample.
+Note also that in the real project this example is based on, there is extra code that ensures `pendingRequests` etc. is
+only accessed by one thread. That code was removed to simplify this example.
 
-The full definition with imports is at [sample/src/main/scala/com/dhpcs/jsonrpc/sample/Client.scala](
-sample/src/main/scala/com/dhpcs/jsonrpc/sample/Client.scala).
+The full definition with imports is at [example/src/main/scala/com/dhpcs/jsonrpc/example/Client.scala](
+example/src/main/scala/com/dhpcs/jsonrpc/example/Client.scala).
 
 ```scala
 object Client {

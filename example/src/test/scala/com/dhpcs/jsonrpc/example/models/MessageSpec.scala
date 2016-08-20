@@ -1,4 +1,4 @@
-package com.dhpcs.jsonrpc.sample.models
+package com.dhpcs.jsonrpc.example.models
 
 import com.dhpcs.json.JsResultUniformity
 import com.dhpcs.jsonrpc.ResponseCompanion.ErrorResponse

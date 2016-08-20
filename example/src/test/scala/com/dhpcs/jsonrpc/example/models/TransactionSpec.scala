@@ -1,4 +1,4 @@
-package com.dhpcs.jsonrpc.sample.models
+package com.dhpcs.jsonrpc.example.models
 
 import com.dhpcs.json.FormatBehaviors
 import org.scalatest._
