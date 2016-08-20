@@ -14,7 +14,7 @@ Just add the following lines to your `build.sbt`:
 ```scala
 resolvers += Resolver.bintrayRepo("dhpcs", "maven")
 
-libraryDependencies += "com.dhpcs" %% "play-json-rpc" % "1.2.0"
+libraryDependencies += "com.dhpcs" %% "play-json-rpc" % "1.2.1"
 ```
 
 Gradle dependency
@@ -37,7 +37,7 @@ Then add to the `dependencies` block of your main module's `build.gradle`:
 
 ```groovy
 dependencies {
-    compile 'com.dhpcs:play-json-rpc_2.11:1.2.0'
+    compile 'com.dhpcs:play-json-rpc_2.11:1.2.1'
 }
 ```
 
@@ -539,9 +539,9 @@ dependencies to be like this:
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.dhpcs" %% "play-json-rpc" % "1.2.0",
+  "com.dhpcs" %% "play-json-rpc" % "1.2.1",
   "org.scalatest" %% "scalatest" % "3.0.0" % Test,
-  "com.dhpcs" %% "play-json-rpc-testkit" % "1.2.0" % Test
+  "com.dhpcs" %% "play-json-rpc-testkit" % "1.2.1" % Test
 )
 ```
 
