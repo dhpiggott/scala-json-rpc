@@ -2,35 +2,54 @@ import sbt.Keys._
 
 scalaVersion in ThisBuild := "2.11.8"
 
-lazy val commonSettings = Seq(
-  organization := "com.dhpcs"
-)
+lazy val commonSettings = organization := "com.dhpcs"
+
+lazy val playJson = "com.typesafe.play" %% "play-json" % "2.3.10"
+
+lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.0.0"
 
 lazy val playJsonRpcTestkit = project.in(file("testkit"))
   .settings(commonSettings)
-  .settings(Seq(
+  .settings(
     name := "play-json-rpc-testkit",
     libraryDependencies ++= Seq(
-      "com.typesafe.play" %% "play-json" % "2.3.10",
-      "org.scalatest" %% "scalatest" % "3.0.0"
+      playJson,
+      scalaTest
     )
-  ))
+  )
 
 lazy val playJsonRpc = project.in(file("play-json-rpc"))
   .settings(commonSettings)
-  .settings(Seq(
+  .settings(
     name := "play-json-rpc",
     libraryDependencies ++= Seq(
-      "com.typesafe.play" %% "play-json" % "2.3.10",
-      "org.scalatest" %% "scalatest" % "3.0.0" % Test
+      playJson,
+      scalaTest % Test
     )
-  ))
+  )
   .dependsOn(playJsonRpcTestkit % Test)
 
 lazy val playJsonRpcExample = project.in(file("example"))
   .settings(commonSettings)
-  .settings(Seq(
-    name := "play-json-rpc-example"
-  ))
+  .settings(
+    name := "play-json-rpc-example",
+    publishArtifact := false,
+    publish := {},
+    publishLocal := {}
+  )
   .dependsOn(playJsonRpc)
   .dependsOn(playJsonRpcTestkit)
+
+lazy val root = project.in(file("."))
+  .settings(commonSettings)
+  .settings(
+    name := "play-json-rpc-root",
+    publishArtifact := false,
+    publish := {},
+    publishLocal := {}
+  )
+  .aggregate(
+    playJsonRpcTestkit,
+    playJsonRpc,
+    playJsonRpcExample
+  )
