@@ -12,10 +12,20 @@ lazy val playJsonRpc = project.in(file("play-json-rpc"))
   .settings(commonSettings)
   .settings(Seq(
     name := "play-json-rpc",
-    publishArtifact in Test := true,
     libraryDependencies ++= Seq(
       "com.typesafe.play" %% "play-json" % "2.3.10",
-      "org.scalatest" %% "scalatest" % "3.0.0" % "test"
+      "org.scalatest" %% "scalatest" % "3.0.0" % Test
+    )
+  ))
+  .dependsOn(playJsonRpcTestkit % Test)
+
+lazy val playJsonRpcTestkit = project.in(file("testkit"))
+  .settings(commonSettings)
+  .settings(Seq(
+    name := "play-json-rpc-testkit",
+    libraryDependencies ++= Seq(
+      "com.typesafe.play" %% "play-json" % "2.3.10",
+      "org.scalatest" %% "scalatest" % "3.0.0"
     )
   ))
 
@@ -25,4 +35,4 @@ lazy val sample = project.in(file("sample"))
     name := "play-json-rpc-sample"
   ))
   .dependsOn(playJsonRpc)
-  .dependsOn(playJsonRpc % "test->test")
+  .dependsOn(playJsonRpcTestkit)

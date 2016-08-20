@@ -526,46 +526,24 @@ to your dependencies, just as you do not need to use the gradle-android-scala pl
    `play-json-rpc` accommodates this difference by instead using the `Json.obj()` JsObject creation function, which is
    present in both 2.3.10 and 2.4.0.
 
-Notes on using the test artifact in SBT projects
-------------------------------------------------
+Testkit
+-------
 
-There are two types in the `com.dhpcs.json` package that may be useful when writing tests for dependent projects
-(example use can be seen in `JsonRpcMessageSpec.scala`):
+There are two types in the `com.dhpcs.json` package of the testkit module that may be useful when writing tests in
+dependent projects (example use can be seen in `JsonRpcMessageSpec.scala`):
 1. `JsResultUniformity`
 2. `FormatBehaviors`
 
-To enable use of these types in test code of dependent projects, the `play-json-rpc` test classes are published
-alongside the main classes, in their own `.jar`.
-
-To make use of these classes in your dependent project's tests, you would set your dependencies to be like this:
+They are published as a separate artifact, so to make use of them in your dependent project's tests, set your
+dependencies to be like this:
 
 ```scala
 libraryDependencies ++= Seq(
   "com.dhpcs" %% "play-json-rpc" % "1.2.0",
   "org.scalatest" %% "scalatest" % "3.0.0" % Test,
-  "com.dhpcs" %% "play-json-rpc" % "1.2.0" % "test->test"
+  "com.dhpcs" %% "play-json-rpc-testkit" % "1.2.0" % Test
 )
 ```
-
-Unfortunately, due to https://github.com/sbt/sbt/issues/1827, if you try to do this using the Maven artifacts on
-Bintray, you will get a build error with words to the effect of "the test configuration is not public".
-
-Until the SBT issue is fixed you have two options to workaround this:
-
-* Remove the Bintray repository from your `build.sbt`, clone `play-json-rpc` and deploy the version you want to use
-directly to your local Ivy cache by running `sbt publishLocal`.
-
- With this the disadvantage is that you have to clone and deploy `play-json-rpc` yourself.
-
-or
-
-* Continue using the Bintray artifacts but change the SBT dependency line to look like this:
-  ```scala
-   "com.dhpcs" %% "play-json-rpc" % "1.2.0" % "test" classifier("tests")
-  ```
-
- With this the disadvantage is that the main configuration of the POM produced by your dependent project will
- unnecessarily depend on the test configuration `.jar` of `play-json-rpc`.
 
 Contributing
 ------------
