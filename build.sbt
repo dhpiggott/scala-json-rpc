@@ -4,6 +4,8 @@ scalaVersion in ThisBuild := "2.11.8"
 
 lazy val commonSettings = organization := "com.dhpcs"
 
+lazy val noopPublish = Seq(publishArtifact := false, publish := {}, publishLocal := {})
+
 lazy val playJson = "com.typesafe.play" %% "play-json" % "2.3.10"
 
 lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.0.0"
@@ -31,22 +33,18 @@ lazy val playJsonRpc = project.in(file("play-json-rpc"))
 
 lazy val playJsonRpcExample = project.in(file("example"))
   .settings(commonSettings)
+  .settings(noopPublish)
   .settings(
-    name := "play-json-rpc-example",
-    publishArtifact := false,
-    publish := {},
-    publishLocal := {}
+    name := "play-json-rpc-example"
   )
   .dependsOn(playJsonRpc)
   .dependsOn(playJsonRpcTestkit)
 
 lazy val root = project.in(file("."))
   .settings(commonSettings)
+  .settings(noopPublish)
   .settings(
-    name := "play-json-rpc-root",
-    publishArtifact := false,
-    publish := {},
-    publishLocal := {}
+    name := "play-json-rpc-root"
   )
   .aggregate(
     playJsonRpcTestkit,
