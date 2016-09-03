@@ -1,10 +1,15 @@
 import sbt.Keys._
 
-scalaVersion in ThisBuild := "2.11.8"
+lazy val commonSettings = Seq(
+  scalaVersion := "2.11.8",
+  organization := "com.dhpcs"
+)
 
-lazy val commonSettings = organization := "com.dhpcs"
-
-lazy val noopPublish = Seq(publishArtifact := false, publish := {}, publishLocal := {})
+lazy val noopPublish = Seq(
+  publishArtifact := false,
+  publish := {},
+  publishLocal := {}
+)
 
 lazy val playJson = "com.typesafe.play" %% "play-json" % "2.3.10"
 
