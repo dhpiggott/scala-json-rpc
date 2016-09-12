@@ -1,6 +1,6 @@
 package com.dhpcs.jsonrpc.example.models
 
-import com.dhpcs.jsonrpc.Message.MethodFormats
+import com.dhpcs.jsonrpc.Message.MessageFormats
 import com.dhpcs.jsonrpc._
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
@@ -44,7 +44,7 @@ object AddTransactionCommand {
 }
 
 object Command extends CommandCompanion[Command] {
-  override val CommandTypeFormats = MethodFormats(
+  override val CommandFormats = MessageFormats(
     "updateAccount" -> Json.format[UpdateAccountCommand],
     "addTransaction" -> Json.format[AddTransactionCommand]
   )
@@ -59,7 +59,7 @@ case object UpdateAccountResponse extends ResultResponse
 case class AddTransactionResponse(created: Long) extends ResultResponse
 
 object Response extends ResponseCompanion[ResultResponse] {
-  override val ResponseFormats = MethodFormats(
+  override val ResponseFormats = MessageFormats(
     "updateAccount" -> UpdateAccountResponse,
     "addTransaction" -> Json.format[AddTransactionResponse]
   )
@@ -72,7 +72,7 @@ case class AccountUpdatedNotification(account: Account) extends Notification
 case class TransactionAddedNotification(transaction: Transaction) extends Notification
 
 object Notification extends NotificationCompanion[Notification] {
-  override val NotificationFormats = MethodFormats(
+  override val NotificationFormats = MessageFormats(
     "accountUpdated" -> Json.format[AccountUpdatedNotification],
     "transactionAdded" -> Json.format[TransactionAddedNotification]
   )
