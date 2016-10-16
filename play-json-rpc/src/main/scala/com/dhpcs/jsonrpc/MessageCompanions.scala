@@ -89,28 +89,16 @@ trait NotificationCompanion[A] {
 
 object Message {
 
-  abstract class MessageFormat[A](methodAndFormatOrObject: (String, Either[A, Format[A]]))
+  implicit class MessageFormat[A](methodAndFormat: (String, Format[A]))
                                  (implicit val classTag: ClassTag[A]) {
-    val (method, formatOrObject) = methodAndFormatOrObject
+    val (method, format) = methodAndFormat
 
-    def fromJson(json: JsValue): JsResult[A] = formatOrObject.fold(
-      obj => JsSuccess(obj),
-      format => format.reads(json)
-    )
+    def fromJson(json: JsValue): JsResult[A] = format.reads(json)
 
     def matchesInstance(o: Any): Boolean = classTag.runtimeClass.isInstance(o)
 
-    def toJson(o: Any): JsValue = formatOrObject.fold(
-      _ => Json.obj(),
-      format => format.writes(o.asInstanceOf[A])
-    )
+    def toJson(o: Any): JsValue = format.writes(o.asInstanceOf[A])
   }
-
-  implicit class MessageFormatFormat[A](methodAndFormat: (String, Format[A]))(implicit classTag: ClassTag[A])
-    extends MessageFormat(methodAndFormat._1, Right(methodAndFormat._2))(classTag)
-
-  implicit class MessageFormatObject[A](methodAndObject: (String, A))(implicit classTag: ClassTag[A])
-    extends MessageFormat(methodAndObject._1, Left(methodAndObject._2))(classTag)
 
   object MessageFormats {
     def apply[A](messageFormats: MessageFormat[_ <: A]*): Seq[MessageFormat[_ <: A]] = {
@@ -132,4 +120,8 @@ object Message {
     }
   }
 
+  def objectFormat[A](o: A): OFormat[A] = OFormat(
+    _.validate[JsObject].map(_ => o),
+    _ => Json.obj()
+  )
 }

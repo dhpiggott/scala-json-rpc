@@ -60,7 +60,7 @@ case class AddTransactionResponse(created: Long) extends ResultResponse
 
 object Response extends ResponseCompanion[ResultResponse] {
   override val ResponseFormats = MessageFormats(
-    "updateAccount" -> UpdateAccountResponse,
+    "updateAccount" -> Message.objectFormat(UpdateAccountResponse),
     "addTransaction" -> Json.format[AddTransactionResponse]
   )
 }
