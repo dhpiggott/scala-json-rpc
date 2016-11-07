@@ -6,6 +6,7 @@ import play.api.data.validation.ValidationError
 import play.api.libs.json._
 
 class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] with Matchers {
+
   describe("An arbitrary JsValue")(
     it should behave like readError[JsonRpcMessage](
       Json.parse(

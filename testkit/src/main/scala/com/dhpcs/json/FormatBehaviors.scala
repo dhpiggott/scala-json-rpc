@@ -22,4 +22,5 @@ trait FormatBehaviors[A] {
     )
 
   def ordered[B]: JsResultUniformity[B] = new JsResultUniformity[B]
+
 }

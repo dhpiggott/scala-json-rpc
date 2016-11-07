@@ -11,6 +11,7 @@ import scala.collection.Seq
 sealed trait JsonRpcMessage
 
 object JsonRpcMessage {
+
   final val Version = "2.0"
 
   implicit final val JsonRpcMessageFormat: Format[JsonRpcMessage] = new Format[JsonRpcMessage] {
@@ -65,6 +66,7 @@ case class JsonRpcRequestMessageBatch(messages: Seq[Either[JsonRpcNotificationMe
 }
 
 object JsonRpcRequestMessageBatch extends JsonRpcMessageCompanion {
+
   implicit final val RequestOrNotificationFormat: Format[Either[JsonRpcNotificationMessage, JsonRpcRequestMessage]]
   = eitherValueFormat[JsonRpcNotificationMessage, JsonRpcRequestMessage]
 
@@ -132,60 +134,55 @@ object JsonRpcNotificationMessage extends JsonRpcMessageCompanion {
 }
 
 trait JsonRpcMessageCompanion {
+
   implicit final val IdFormat: Format[Either[String, BigDecimal]] = eitherValueFormat[String, BigDecimal]
   implicit final val ParamsFormat: Format[Either[JsArray, JsObject]] = eitherValueFormat[JsArray, JsObject]
 
-  protected[this] def eitherObjectFormat[A, B](leftKey: String, rightKey: String)
-                                              (implicit leftFormat: Format[A],
-                                               rightFormat: Format[B]): Format[Either[A, B]] =
+  protected[this] def eitherObjectFormat[A : Format, B: Format](leftKey: String,
+                                                                rightKey: String): Format[Either[A, B]] =
     OFormat(
-      (__ \ rightKey).read(rightFormat).map(b => Right(b): Either[A, B]) orElse
-        (__ \ leftKey).read(leftFormat).map(a => Left(a): Either[A, B]),
+      (__ \ rightKey).read[B].map(b => Right(b): Either[A, B]) orElse
+        (__ \ leftKey).read[A].map(a => Left(a): Either[A, B]),
       OWrites[Either[A, B]] {
-        case Right(rightValue) => Json.obj(rightKey -> rightFormat.writes(rightValue))
-        case Left(leftValue) => Json.obj(leftKey -> leftFormat.writes(leftValue))
+        case Right(rightValue) => Json.obj(rightKey -> Json.toJson(rightValue))
+        case Left(leftValue) => Json.obj(leftKey -> Json.toJson[A](leftValue))
       }
     )
 
-  protected[this] def eitherValueFormat[A, B](implicit leftFormat: Format[A],
-                                              rightFormat: Format[B]): Format[Either[A, B]] =
+  protected[this] def eitherValueFormat[A : Format, B: Format]: Format[Either[A, B]] =
     Format(
-      __.read(rightFormat).map(b => Right(b): Either[A, B]) orElse
-        __.read(leftFormat).map(a => Left(a): Either[A, B]),
+      __.read[B].map(b => Right(b): Either[A, B]) orElse
+        __.read[A].map(a => Left(a): Either[A, B]),
       Writes[Either[A, B]] {
-        case Right(rightValue) => rightFormat.writes(rightValue)
-        case Left(leftValue) => leftFormat.writes(leftValue)
+        case Right(rightValue) => Json.toJson(rightValue)
+        case Left(leftValue) => Json.toJson(leftValue)
       }
     )
 }
 
 sealed trait JsonRpcResponseError {
+
   def code: Int
-
   def message: String
-
   def data: Option[JsValue]
+
 }
 
 object JsonRpcResponseError {
 
-  private case class RealJsonRpcResponseError(code: Int,
+  private case class JsonRpcResponseErrorImpl(code: Int,
                                               message: String,
                                               data: Option[JsValue]) extends JsonRpcResponseError
 
-  private final val RealJsonRpcResponseErrorFormat: Format[RealJsonRpcResponseError] =
-    Json.format[RealJsonRpcResponseError]
-
-  implicit final val JsonRpcResponseErrorFormat: Format[JsonRpcResponseError] = Format(
-    Reads(json =>
-      RealJsonRpcResponseErrorFormat.reads(json).map(
-        realJsonRpcResponseError => realJsonRpcResponseError: JsonRpcResponseError
-      )),
-    Writes(traitJsonRpcResponseError =>
-      RealJsonRpcResponseErrorFormat.writes(
-        traitJsonRpcResponseError.asInstanceOf[RealJsonRpcResponseError]
-      ))
-  )
+  implicit final val JsonRpcResponseErrorFormat: Format[JsonRpcResponseError] = {
+    val jsonRpcResponseErrorImplFormat = Json.format[JsonRpcResponseErrorImpl]
+    Format(
+      Reads(jsValue =>
+        Json.fromJson(jsValue)(jsonRpcResponseErrorImplFormat).map(_.asInstanceOf[JsonRpcResponseError])),
+      Writes(jsonRpcResponseError =>
+        Json.toJson(jsonRpcResponseError.asInstanceOf[JsonRpcResponseErrorImpl])(jsonRpcResponseErrorImplFormat))
+    )
+  }
 
   final val ReservedErrorCodeFloor = -32768
   final val ReservedErrorCodeCeiling = -32000
@@ -201,7 +198,7 @@ object JsonRpcResponseError {
   private def apply(code: Int,
                     message: String,
                     meaning: String,
-                    error: Option[JsValue]): JsonRpcResponseError = RealJsonRpcResponseError(
+                    error: Option[JsValue]): JsonRpcResponseError = JsonRpcResponseErrorImpl(
     code,
     message,
     Some(
@@ -216,7 +213,7 @@ object JsonRpcResponseError {
 
   private def apply(code: Int,
                     message: String,
-                    data: Option[JsValue]): JsonRpcResponseError = RealJsonRpcResponseError(
+                    data: Option[JsValue]): JsonRpcResponseError = JsonRpcResponseErrorImpl(
     code,
     message,
     data

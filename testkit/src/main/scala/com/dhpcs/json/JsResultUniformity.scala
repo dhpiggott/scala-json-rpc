@@ -4,6 +4,7 @@ import org.scalactic.Uniformity
 import play.api.libs.json.{JsError, JsResult}
 
 class JsResultUniformity[A] extends Uniformity[JsResult[A]] {
+
   override def normalized(jsResult: JsResult[A]): JsResult[A] = jsResult match {
     case JsError(errors) =>
       JsError(
