@@ -1,21 +1,23 @@
 package com.dhpcs.jsonrpc
 
-import com.dhpcs.jsonrpc.Message.MessageFormat
 import com.dhpcs.jsonrpc.ResponseCompanion.ErrorResponse
 import play.api.libs.json._
 
 import scala.reflect.ClassTag
 
 trait CommandCompanion[A] {
-  protected[this] val CommandFormats: Seq[MessageFormat[_ <: A]]
 
-  def read(jsonRpcRequestMessage: JsonRpcRequestMessage): Option[JsResult[A]] =
-    CommandFormats.find(_.method == jsonRpcRequestMessage.method).map(
-      typeChoiceMapping => jsonRpcRequestMessage.params.fold[JsResult[A]](
+  private[this] lazy val (methodReads, classWrites) = CommandFormats
+
+  protected[this] val CommandFormats: (Map[String, Reads[_ <: A]], Map[Class[_], (String, OWrites[_ <: A])])
+
+  def read(jsonRpcRequestMessage: JsonRpcRequestMessage): Option[JsResult[_ <: A]] =
+    methodReads.get(jsonRpcRequestMessage.method).map(
+      reads => jsonRpcRequestMessage.params.fold[JsResult[A]](
         ifEmpty = JsError("command parameters must be given")
       )(_.fold(
         _ => JsError("command parameters must be named"),
-        jsObject => typeChoiceMapping.fromJson(jsObject)
+        jsObject => reads.reads(jsObject)
       ))
     ).map(_.fold(
       // We do this in order to drop any non-root path that may have existed in the success case.
@@ -23,35 +25,41 @@ trait CommandCompanion[A] {
       valid => JsSuccess(valid)
     ))
 
-  def write(command: A, id: Option[Either[String, BigDecimal]]): JsonRpcRequestMessage = {
-    val mapping = CommandFormats.find(_.matchesInstance(command))
-      .getOrElse(sys.error(s"No format found for ${command.getClass}"))
-    JsonRpcRequestMessage(mapping.method, Some(Right(mapping.toJson(command).asInstanceOf[JsObject])), id)
+  def write[B <: A](command: B, id: Option[Either[String, BigDecimal]]): JsonRpcRequestMessage = {
+    val (method, writes) = classWrites
+      .getOrElse(command.getClass, sys.error(s"No format found for ${command.getClass}"))
+    val bWrites = writes.asInstanceOf[OWrites[B]]
+    JsonRpcRequestMessage(method, Some(Right(bWrites.writes(command))), id)
   }
 }
 
 trait ResponseCompanion[A] {
-  protected[this] val ResponseFormats: Seq[MessageFormat[_ <: A]]
 
-  def read(jsonRpcResponseMessage: JsonRpcResponseMessage, method: String): JsResult[Either[ErrorResponse, A]] =
+  private[this] lazy val (methodReads, classWrites) = ResponseFormats
+
+  protected[this] val ResponseFormats: (Map[String, Reads[_ <: A]], Map[Class[_], (String, OWrites[_ <: A])])
+
+  def read(jsonRpcResponseMessage: JsonRpcResponseMessage, method: String): JsResult[Either[ErrorResponse, _ <: A]] =
     jsonRpcResponseMessage.eitherErrorOrResult.fold(
       error => JsSuccess(ErrorResponse(error.code, error.message, error.data)).map(Left(_)),
-      result => ResponseFormats.find(_.method == method).get.fromJson(result).map(Right(_))
+      result => methodReads(method).reads(result).map(Right(_))
     ).fold(
       // We do this in order to drop any non-root path that may have existed in the success case.
       invalid => JsError(invalid),
       valid => JsSuccess(valid)
     )
 
-  def write(response: Either[ErrorResponse, A], id: Option[Either[String, BigDecimal]]): JsonRpcResponseMessage = {
+  def write[B <: A](response: Either[ErrorResponse, B],
+                    id: Option[Either[String, BigDecimal]]): JsonRpcResponseMessage = {
     val eitherErrorOrResult = response match {
       case Left(ErrorResponse(code, message, data)) => Left(
         JsonRpcResponseError.applicationError(code, message, data)
       )
       case Right(resultResponse) =>
-        val mapping = ResponseFormats.find(_.matchesInstance(resultResponse))
-          .getOrElse(sys.error(s"No format found for ${response.getClass}"))
-        Right(mapping.toJson(resultResponse))
+        val (_, writes) = classWrites
+          .getOrElse(resultResponse.getClass, sys.error(s"No format found for ${response.getClass}"))
+        val bWrites = writes.asInstanceOf[OWrites[B]]
+        Right(bWrites.writes(resultResponse))
     }
     JsonRpcResponseMessage(eitherErrorOrResult, id)
   }
@@ -66,13 +74,16 @@ object ResponseCompanion {
 }
 
 trait NotificationCompanion[A] {
-  protected[this] val NotificationFormats: Seq[MessageFormat[_ <: A]]
 
-  def read(jsonRpcNotificationMessage: JsonRpcNotificationMessage): Option[JsResult[A]] =
-    NotificationFormats.find(_.method == jsonRpcNotificationMessage.method).map(
-      typeChoiceMapping => jsonRpcNotificationMessage.params.fold(
+  private[this] lazy val (methodReads, classWrites) = NotificationFormats
+
+  protected[this] val NotificationFormats: (Map[String, Reads[_ <: A]], Map[Class[_], (String, OWrites[_ <: A])])
+
+  def read(jsonRpcNotificationMessage: JsonRpcNotificationMessage): Option[JsResult[_ <: A]] =
+    methodReads.get(jsonRpcNotificationMessage.method).map(
+      reads => jsonRpcNotificationMessage.params.fold(
         _ => JsError("notification parameters must be named"),
-        jsObject => typeChoiceMapping.fromJson(jsObject)
+        jsObject => reads.reads(jsObject)
       )
     ).map(_.fold(
       // We do this in order to drop any non-root path that may have existed in the success case.
@@ -80,43 +91,43 @@ trait NotificationCompanion[A] {
       valid => JsSuccess(valid)
     ))
 
-  def write(notification: A): JsonRpcNotificationMessage = {
-    val mapping = NotificationFormats.find(_.matchesInstance(notification))
-      .getOrElse(sys.error(s"No format found for ${notification.getClass}"))
-    JsonRpcNotificationMessage(mapping.method, Right(mapping.toJson(notification).asInstanceOf[JsObject]))
+  def write[B <: A](notification: B): JsonRpcNotificationMessage = {
+    val (method, writes) = classWrites
+      .getOrElse(notification.getClass, sys.error(s"No format found for ${notification.getClass}"))
+    val bWrites = writes.asInstanceOf[OWrites[B]]
+    JsonRpcNotificationMessage(method, Right(bWrites.writes(notification)))
   }
 }
 
 object Message {
 
-  implicit class MessageFormat[A](methodAndFormat: (String, Format[A]))
-                                 (implicit val classTag: ClassTag[A]) {
+  implicit class MessageFormat[A : ClassTag](methodAndFormat: (String, Format[A])) {
+    val classTag = implicitly[ClassTag[A]]
     val (method, format) = methodAndFormat
-
-    def fromJson(json: JsValue): JsResult[A] = format.reads(json)
-
-    def matchesInstance(o: Any): Boolean = classTag.runtimeClass.isInstance(o)
-
-    def toJson(o: Any): JsValue = format.writes(o.asInstanceOf[A])
   }
 
   object MessageFormats {
-    def apply[A](messageFormats: MessageFormat[_ <: A]*): Seq[MessageFormat[_ <: A]] = {
+    def apply[A](messageFormats: MessageFormat[_ <: A]*):
+    (Map[String, Reads[_ <: A]], Map[Class[_], (String, OWrites[_ <: A])]) = {
       val methods = messageFormats.map(_.method)
       require(
         methods == methods.distinct,
         "Duplicate methods: " + methods.mkString(", ")
       )
-      val overlappingTypes = messageFormats.combinations(2).filter {
-        case Seq(first, second) => first.classTag.runtimeClass isAssignableFrom second.classTag.runtimeClass
-      }
+      val classes = messageFormats.map(_.classTag.runtimeClass)
       require(
-        overlappingTypes.isEmpty,
-        "Overlapping types: " + overlappingTypes.map {
-          case Seq(first, second) => s"${first.classTag} is assignable from ${second.classTag}"
-        }.mkString(", ")
+        classes == classes.distinct,
+        "Duplicate classes: " + classes.mkString(", ")
       )
-      messageFormats
+      val reads = messageFormats.map(messageFormat =>
+        messageFormat.method ->
+          messageFormat.format
+      )
+      val writes = messageFormats.map(messageFormat =>
+        messageFormat.classTag.runtimeClass ->
+          (messageFormat.method, messageFormat.format.asInstanceOf[OWrites[_ <: A]])
+      )
+      (reads.toMap, writes.toMap)
     }
   }
 
