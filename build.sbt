@@ -11,7 +11,7 @@ lazy val noopPublish = Seq(
 
 lazy val playJson = "com.typesafe.play" %% "play-json" % "2.3.10"
 
-lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.0.0"
+lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.0.1"
 
 lazy val playJsonRpcTestkit = project.in(file("testkit"))
   .settings(commonSettings)
