@@ -9,8 +9,6 @@ can use it in a wide range of applications – including in Android projects.
 SBT dependency
 --------------
 
-Just add the following lines to your `build.sbt`:
-
 ```scala
 resolvers += Resolver.bintrayRepo("dhpcs", "maven")
 
@@ -19,21 +17,6 @@ libraryDependencies += "com.dhpcs" %% "play-json-rpc" % "1.3.0"
 
 Gradle dependency
 -----------------
-
-For (e.g.) Android Gradle projects, first add to the `repositories` block of your top-level `build.gradle`:
-
-```groovy
-allprojects {
-    repositories {
-        jcenter()
-        maven {
-            url  "https://dl.bintray.com/dhpcs/maven"
-        }
-    }
-}
-```
-
-Then add to the `dependencies` block of your main module's `build.gradle`:
 
 ```groovy
 dependencies {
