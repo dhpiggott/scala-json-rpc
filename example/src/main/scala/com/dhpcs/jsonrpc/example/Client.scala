@@ -11,9 +11,8 @@ import scala.util.{Failure, Right, Success, Try}
 object Client {
 
   trait ResponseCallback {
-    def onErrorReceived(errorResponse: ErrorResponse)
-
-    def onResultReceived(resultResponse: ResultResponse) = ()
+    def onErrorReceived(errorResponse: ErrorResponse): Unit
+    def onResultReceived(resultResponse: ResultResponse): Unit = ()
   }
 
   private case class PendingRequest(requestMessage: JsonRpcRequestMessage,
@@ -32,14 +31,15 @@ object Client {
 }
 
 class Client {
+
   private[this] var pendingRequests = Map.empty[BigDecimal, PendingRequest]
   private[this] var commandIdentifier = BigDecimal(0)
 
-  private[this] def deliverToServer(jsonString: String) = ???
+  private[this] def deliverToServer(jsonString: String): Unit = ()
 
-  private[this] def notifySubscribers(notification: Notification) = ???
+  private[this] def notifySubscribers(notification: Notification): Unit = ()
 
-  def sendCommand(command: Command, responseCallback: ResponseCallback) {
+  def sendCommand(command: Command, responseCallback: ResponseCallback): Unit = {
     val jsonRpcRequestMessage = Command.write(command, Some(Right(commandIdentifier)))
     commandIdentifier = commandIdentifier + 1
     val jsonCommandString = Json.stringify(
@@ -51,7 +51,7 @@ class Client {
         PendingRequest(jsonRpcRequestMessage, responseCallback))
   }
 
-  def yourMessageHandler(jsonString: String) {
+  def yourMessageHandler(jsonString: String): Unit = {
     readJsonRpcMessage(jsonString) match {
       case Left(error) =>
         sys.error(error)

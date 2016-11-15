@@ -9,6 +9,7 @@ import play.api.libs.json.Json
 import scala.util.{Failure, Random, Success, Try}
 
 object Server {
+
   private def readCommand(jsonString: String):
   (Option[Either[String, BigDecimal]], Either[JsonRpcResponseError, Command]) =
     Try(Json.parse(jsonString)) match {
@@ -40,11 +41,12 @@ object Server {
 }
 
 class Server {
-  private[this] def deliverToSender(jsonString: String) = ???
 
-  private[this] def deliverToSubscribers(jsonString: String) = ???
+  private[this] def deliverToSender(jsonString: String): Unit = ()
 
-  def yourMessageHandler(jsonString: String) = readCommand(jsonString) match {
+  private[this] def deliverToSubscribers(jsonString: String): Unit = ()
+
+  def yourMessageHandler(jsonString: String): Unit = readCommand(jsonString) match {
     case (id, Left(jsonRpcResponseError)) =>
       val jsonResponseString = Json.stringify(Json.toJson(
         JsonRpcResponseMessage(Left(jsonRpcResponseError), id)

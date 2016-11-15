@@ -3,6 +3,7 @@ package com.dhpcs.jsonrpc
 import com.dhpcs.jsonrpc.ResponseCompanion.ErrorResponse
 import play.api.libs.json._
 
+import scala.language.existentials
 import scala.reflect.ClassTag
 
 trait CommandCompanion[A] {
@@ -125,7 +126,7 @@ object Message {
       )
       val writes = messageFormats.map(messageFormat =>
         messageFormat.classTag.runtimeClass ->
-          (messageFormat.method, messageFormat.format.asInstanceOf[OWrites[_ <: A]])
+          (messageFormat.method -> messageFormat.format.asInstanceOf[OWrites[_ <: A]])
       )
       (reads.toMap, writes.toMap)
     }
