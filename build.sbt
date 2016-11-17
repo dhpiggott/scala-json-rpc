@@ -23,7 +23,8 @@ lazy val commonSettings = Seq(
       "-Ywarn-unused-import"
     )
   ) ++
-    addCommandAlias("validate", ";scalafmtTest; test:scalafmtTest; test")
+    addCommandAlias("validate", ";scalafmtTest; test:scalafmtTest; coverage; test; coverageReport") ++
+    addCommandAlias("validateAggregate", ";coverageAggregate")
 
 lazy val noopPublish = Seq(
   publishArtifact := false,
