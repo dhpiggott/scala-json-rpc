@@ -8,10 +8,8 @@ import play.api.libs.json._
 
 sealed trait Message
 
-sealed trait Command extends Message
-
+sealed trait Command                              extends Message
 case class UpdateAccountCommand(account: Account) extends Command
-
 case class AddTransactionCommand(from: Int,
                                  to: Int,
                                  value: BigDecimal,
@@ -51,12 +49,9 @@ object Command extends CommandCompanion[Command] {
   )
 }
 
-sealed trait Response extends Message
-
-sealed trait ResultResponse extends Response
-
-case object UpdateAccountResponse extends ResultResponse
-
+sealed trait Response                            extends Message
+sealed trait ResultResponse                      extends Response
+case object UpdateAccountResponse                extends ResultResponse
 case class AddTransactionResponse(created: Long) extends ResultResponse
 
 object Response extends ResponseCompanion[ResultResponse] {
@@ -66,10 +61,8 @@ object Response extends ResponseCompanion[ResultResponse] {
   )
 }
 
-sealed trait Notification extends Message
-
-case class AccountUpdatedNotification(account: Account) extends Notification
-
+sealed trait Notification                                         extends Message
+case class AccountUpdatedNotification(account: Account)           extends Notification
 case class TransactionAddedNotification(transaction: Transaction) extends Notification
 
 object Notification extends NotificationCompanion[Notification] {

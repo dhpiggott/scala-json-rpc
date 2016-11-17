@@ -87,26 +87,6 @@ class MessageSpec extends FunSpec with Matchers {
     }
   }
 
-  private[this] def commandReadError(jsonRpcRequestMessage: JsonRpcRequestMessage, jsError: Option[JsError]) =
-    it(s"should fail to decode with error $jsError") {
-      val jsResult = Command.read(jsonRpcRequestMessage)
-      jsError.fold(jsResult shouldBe empty)(
-        jsResult.value should equal(_)(after being ordered[Command])
-      )
-    }
-
-  private[this] def commandRead(implicit jsonRpcRequestMessage: JsonRpcRequestMessage, command: Command) =
-    it(s"should decode to $command")(
-      Command.read(jsonRpcRequestMessage) should be(Some(JsSuccess(command)))
-    )
-
-  private[this] def commandWrite(implicit command: Command,
-                                 id: Either[String, BigDecimal],
-                                 jsonRpcRequestMessage: JsonRpcRequestMessage) =
-    it(s"should encode to $jsonRpcRequestMessage")(
-      Command.write(command, Some(id)) should be(jsonRpcRequestMessage)
-    )
-
   describe("A Response") {
     describe("of type AddTransactionResponse")(
       describe("with empty params")(
@@ -141,28 +121,6 @@ class MessageSpec extends FunSpec with Matchers {
     it should behave like responseRead
     it should behave like responseWrite
   }
-
-  private[this] def responseReadError(jsonRpcResponseMessage: JsonRpcResponseMessage,
-                                      method: String,
-                                      jsError: JsError) =
-    it(s"should fail to decode with error $jsError")(
-      (Response.read(jsonRpcResponseMessage, method)
-        should equal(jsError))(after being ordered[Either[ErrorResponse, ResultResponse]])
-    )
-
-  private[this] def responseRead(implicit jsonRpcResponseMessage: JsonRpcResponseMessage,
-                                 method: String,
-                                 errorOrResponse: Either[ErrorResponse, ResultResponse]) =
-    it(s"should decode to $errorOrResponse")(
-      Response.read(jsonRpcResponseMessage, method) should be(JsSuccess(errorOrResponse))
-    )
-
-  private[this] def responseWrite(implicit errorOrResponse: Either[ErrorResponse, ResultResponse],
-                                  id: Either[String, BigDecimal],
-                                  jsonRpcResponseMessage: JsonRpcResponseMessage) =
-    it(s"should encode to $jsonRpcResponseMessage")(
-      Response.write(errorOrResponse, Some(id)) should be(jsonRpcResponseMessage)
-    )
 
   describe("A Notification") {
     describe("with an invalid method")(
@@ -224,6 +182,48 @@ class MessageSpec extends FunSpec with Matchers {
     }
   }
 
+  private[this] def commandReadError(jsonRpcRequestMessage: JsonRpcRequestMessage, jsError: Option[JsError]) =
+    it(s"should fail to decode with error $jsError") {
+      val jsResult = Command.read(jsonRpcRequestMessage)
+      jsError.fold(jsResult shouldBe empty)(
+        jsResult.value should equal(_)(after being ordered[Command])
+      )
+    }
+
+  private[this] def commandRead(implicit jsonRpcRequestMessage: JsonRpcRequestMessage, command: Command) =
+    it(s"should decode to $command")(
+      Command.read(jsonRpcRequestMessage) should be(Some(JsSuccess(command)))
+    )
+
+  private[this] def commandWrite(implicit command: Command,
+                                 id: Either[String, BigDecimal],
+                                 jsonRpcRequestMessage: JsonRpcRequestMessage) =
+    it(s"should encode to $jsonRpcRequestMessage")(
+      Command.write(command, Some(id)) should be(jsonRpcRequestMessage)
+    )
+
+  private[this] def responseReadError(jsonRpcResponseMessage: JsonRpcResponseMessage,
+                                      method: String,
+                                      jsError: JsError) =
+    it(s"should fail to decode with error $jsError")(
+      (Response.read(jsonRpcResponseMessage, method)
+        should equal(jsError))(after being ordered[Either[ErrorResponse, ResultResponse]])
+    )
+
+  private[this] def responseRead(implicit jsonRpcResponseMessage: JsonRpcResponseMessage,
+                                 method: String,
+                                 errorOrResponse: Either[ErrorResponse, ResultResponse]) =
+    it(s"should decode to $errorOrResponse")(
+      Response.read(jsonRpcResponseMessage, method) should be(JsSuccess(errorOrResponse))
+    )
+
+  private[this] def responseWrite(implicit errorOrResponse: Either[ErrorResponse, ResultResponse],
+                                  id: Either[String, BigDecimal],
+                                  jsonRpcResponseMessage: JsonRpcResponseMessage) =
+    it(s"should encode to $jsonRpcResponseMessage")(
+      Response.write(errorOrResponse, Some(id)) should be(jsonRpcResponseMessage)
+    )
+
   private[this] def notificationReadError(jsonRpcNotificationMessage: JsonRpcNotificationMessage,
                                           jsError: Option[JsError]) =
     it(s"should fail to decode with error $jsError") {
@@ -246,4 +246,5 @@ class MessageSpec extends FunSpec with Matchers {
     )
 
   private[this] def ordered[A] = new JsResultUniformity[A]
+
 }

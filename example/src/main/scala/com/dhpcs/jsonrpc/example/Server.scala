@@ -50,10 +50,6 @@ object Server {
 
 class Server {
 
-  private[this] def deliverToSender(jsonString: String): Unit = ()
-
-  private[this] def deliverToSubscribers(jsonString: String): Unit = ()
-
   def yourMessageHandler(jsonString: String): Unit = readCommand(jsonString) match {
     case (id, Left(jsonRpcResponseError)) =>
       val jsonResponseString = Json.stringify(
@@ -148,4 +144,8 @@ class Server {
           }
       }
   }
+
+  private[this] def deliverToSender(jsonString: String): Unit      = ()
+  private[this] def deliverToSubscribers(jsonString: String): Unit = ()
+
 }
