@@ -17,6 +17,6 @@ class JsResultUniformity[A] extends Uniformity[JsResult[A]] {
 
   override def normalizedOrSame(o: Any): Any = o match {
     case jsError: JsError => normalized(jsError)
-    case _ => o
+    case _                => o
   }
 }

@@ -16,7 +16,8 @@ case class AddTransactionCommand(from: Int,
                                  to: Int,
                                  value: BigDecimal,
                                  description: Option[String] = None,
-                                 metadata: Option[JsObject] = None) extends Command {
+                                 metadata: Option[JsObject] = None)
+    extends Command {
   require(value >= 0)
 }
 
@@ -27,25 +28,25 @@ object AddTransactionCommand {
       (JsPath \ "value").format(min[BigDecimal](0)) and
       (JsPath \ "description").formatNullable[String] and
       (JsPath \ "metadata").formatNullable[JsObject]
-    ) ((from, to, value, description, metadata) =>
-    AddTransactionCommand(
-      from,
-      to,
-      value,
-      description,
-      metadata
-    ), addTransactionCommand =>
-    (addTransactionCommand.from,
-      addTransactionCommand.to,
-      addTransactionCommand.value,
-      addTransactionCommand.description,
-      addTransactionCommand.metadata)
-  )
+  )((from, to, value, description, metadata) =>
+      AddTransactionCommand(
+        from,
+        to,
+        value,
+        description,
+        metadata
+    ),
+    addTransactionCommand =>
+      (addTransactionCommand.from,
+       addTransactionCommand.to,
+       addTransactionCommand.value,
+       addTransactionCommand.description,
+       addTransactionCommand.metadata))
 }
 
 object Command extends CommandCompanion[Command] {
   override val CommandFormats = MessageFormats(
-    "updateAccount" -> Json.format[UpdateAccountCommand],
+    "updateAccount"  -> Json.format[UpdateAccountCommand],
     "addTransaction" -> Json.format[AddTransactionCommand]
   )
 }
@@ -60,7 +61,7 @@ case class AddTransactionResponse(created: Long) extends ResultResponse
 
 object Response extends ResponseCompanion[ResultResponse] {
   override val ResponseFormats = MessageFormats(
-    "updateAccount" -> Message.objectFormat(UpdateAccountResponse),
+    "updateAccount"  -> Message.objectFormat(UpdateAccountResponse),
     "addTransaction" -> Json.format[AddTransactionResponse]
   )
 }
@@ -73,7 +74,7 @@ case class TransactionAddedNotification(transaction: Transaction) extends Notifi
 
 object Notification extends NotificationCompanion[Notification] {
   override val NotificationFormats = MessageFormats(
-    "accountUpdated" -> Json.format[AccountUpdatedNotification],
+    "accountUpdated"   -> Json.format[AccountUpdatedNotification],
     "transactionAdded" -> Json.format[TransactionAddedNotification]
   )
 }

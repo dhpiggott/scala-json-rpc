@@ -22,20 +22,20 @@ object Transaction {
       (JsPath \ "created").format(min[Long](0)) and
       (JsPath \ "description").formatNullable[String] and
       (JsPath \ "metadata").formatNullable[JsObject]
-    ) ((from, to, value, created, description, metadata) =>
-    Transaction(
-      from,
-      to,
-      value,
-      created,
-      description,
-      metadata
-    ), transaction =>
-    (transaction.from,
-      transaction.to,
-      transaction.value,
-      transaction.created,
-      transaction.description,
-      transaction.metadata)
-  )
+  )((from, to, value, created, description, metadata) =>
+      Transaction(
+        from,
+        to,
+        value,
+        created,
+        description,
+        metadata
+    ),
+    transaction =>
+      (transaction.from,
+       transaction.to,
+       transaction.value,
+       transaction.created,
+       transaction.description,
+       transaction.metadata))
 }
