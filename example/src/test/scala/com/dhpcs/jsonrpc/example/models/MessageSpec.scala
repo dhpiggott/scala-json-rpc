@@ -29,11 +29,12 @@ class MessageSpec extends FunSpec with Matchers {
             Some(Left(Json.arr())),
             Some(Right(1))
           ),
-          Some(JsError(
-            List(
-              (__, List(ValidationError("command parameters must be named")))
-            )
-          ))
+          Some(
+            JsError(
+              List(
+                (__, List(ValidationError("command parameters must be named")))
+              )
+            ))
         )
       )
       describe("with empty params")(
@@ -43,13 +44,14 @@ class MessageSpec extends FunSpec with Matchers {
             Some(Right(Json.obj())),
             Some(Right(1))
           ),
-          Some(JsError(
-            List(
-              (__ \ "from", List(ValidationError("error.path.missing"))),
-              (__ \ "to", List(ValidationError("error.path.missing"))),
-              (__ \ "value", List(ValidationError("error.path.missing")))
-            )
-          ))
+          Some(
+            JsError(
+              List(
+                (__ \ "from", List(ValidationError("error.path.missing"))),
+                (__ \ "to", List(ValidationError("error.path.missing"))),
+                (__ \ "value", List(ValidationError("error.path.missing")))
+              )
+            ))
         )
       )
       implicit val addTransactionCommand = AddTransactionCommand(
@@ -66,17 +68,18 @@ class MessageSpec extends FunSpec with Matchers {
       implicit val id = Right(BigDecimal(1))
       implicit val jsonRpcRequestMessage = JsonRpcRequestMessage(
         "addTransaction",
-        Some(Right(
-          Json.obj(
-            "from" -> 0,
-            "to" -> 1,
-            "value" -> BigDecimal(1000000),
-            "description" -> "Property purchase",
-            "metadata" -> Json.obj(
-              "property" -> "The TARDIS"
+        Some(
+          Right(
+            Json.obj(
+              "from"        -> 0,
+              "to"          -> 1,
+              "value"       -> BigDecimal(1000000),
+              "description" -> "Property purchase",
+              "metadata" -> Json.obj(
+                "property" -> "The TARDIS"
+              )
             )
-          )
-        )),
+          )),
         Some(Right(1))
       )
       it should behave like commandRead
@@ -92,14 +95,14 @@ class MessageSpec extends FunSpec with Matchers {
       )
     }
 
-  private[this]def commandRead(implicit jsonRpcRequestMessage: JsonRpcRequestMessage, command: Command) =
+  private[this] def commandRead(implicit jsonRpcRequestMessage: JsonRpcRequestMessage, command: Command) =
     it(s"should decode to $command")(
       Command.read(jsonRpcRequestMessage) should be(Some(JsSuccess(command)))
     )
 
   private[this] def commandWrite(implicit command: Command,
-                           id: Either[String, BigDecimal],
-                           jsonRpcRequestMessage: JsonRpcRequestMessage) =
+                                 id: Either[String, BigDecimal],
+                                 jsonRpcRequestMessage: JsonRpcRequestMessage) =
     it(s"should encode to $jsonRpcRequestMessage")(
       Command.write(command, Some(id)) should be(jsonRpcRequestMessage)
     )
@@ -121,9 +124,10 @@ class MessageSpec extends FunSpec with Matchers {
         )
       )
     )
-    implicit val addTransactionResponse = Right(AddTransactionResponse(
-      1434115187612L
-    ))
+    implicit val addTransactionResponse = Right(
+      AddTransactionResponse(
+        1434115187612L
+      ))
     implicit val id = Right(BigDecimal(1))
     implicit val jsonRpcResponseMessage = JsonRpcResponseMessage(
       Right(
@@ -138,22 +142,24 @@ class MessageSpec extends FunSpec with Matchers {
     it should behave like responseWrite
   }
 
-  private[this] def responseReadError(jsonRpcResponseMessage: JsonRpcResponseMessage, method: String, jsError: JsError) =
+  private[this] def responseReadError(jsonRpcResponseMessage: JsonRpcResponseMessage,
+                                      method: String,
+                                      jsError: JsError) =
     it(s"should fail to decode with error $jsError")(
       (Response.read(jsonRpcResponseMessage, method)
-        should equal(jsError)) (after being ordered[Either[ErrorResponse, ResultResponse]])
+        should equal(jsError))(after being ordered[Either[ErrorResponse, ResultResponse]])
     )
 
   private[this] def responseRead(implicit jsonRpcResponseMessage: JsonRpcResponseMessage,
-                           method: String,
-                           errorOrResponse: Either[ErrorResponse, ResultResponse]) =
+                                 method: String,
+                                 errorOrResponse: Either[ErrorResponse, ResultResponse]) =
     it(s"should decode to $errorOrResponse")(
       Response.read(jsonRpcResponseMessage, method) should be(JsSuccess(errorOrResponse))
     )
 
   private[this] def responseWrite(implicit errorOrResponse: Either[ErrorResponse, ResultResponse],
-                            id: Either[String, BigDecimal],
-                            jsonRpcResponseMessage: JsonRpcResponseMessage) =
+                                  id: Either[String, BigDecimal],
+                                  jsonRpcResponseMessage: JsonRpcResponseMessage) =
     it(s"should encode to $jsonRpcResponseMessage")(
       Response.write(errorOrResponse, Some(id)) should be(jsonRpcResponseMessage)
     )
@@ -175,11 +181,12 @@ class MessageSpec extends FunSpec with Matchers {
             "transactionAdded",
             Left(Json.arr())
           ),
-          Some(JsError(
-            List(
-              (__, List(ValidationError("notification parameters must be named")))
-            )
-          ))
+          Some(
+            JsError(
+              List(
+                (__, List(ValidationError("notification parameters must be named")))
+              )
+            ))
         )
       )
       describe("with empty params") {
@@ -188,11 +195,12 @@ class MessageSpec extends FunSpec with Matchers {
             "transactionAdded",
             Right(Json.obj())
           ),
-          Some(JsError(
-            List(
-              (__ \ "transaction", List(ValidationError("error.path.missing")))
-            )
-          ))
+          Some(
+            JsError(
+              List(
+                (__ \ "transaction", List(ValidationError("error.path.missing")))
+              )
+            ))
         )
       }
       implicit val clientJoinedZoneNotification = TransactionAddedNotification(
@@ -207,7 +215,7 @@ class MessageSpec extends FunSpec with Matchers {
         "transactionAdded",
         Right(
           Json.obj(
-            "transaction" -> Json.parse( """{"from":0,"to":1,"value":1000000,"created":1434115187612}""")
+            "transaction" -> Json.parse("""{"from":0,"to":1,"value":1000000,"created":1434115187612}""")
           )
         )
       )
@@ -216,7 +224,8 @@ class MessageSpec extends FunSpec with Matchers {
     }
   }
 
-  private[this] def notificationReadError(jsonRpcNotificationMessage: JsonRpcNotificationMessage, jsError: Option[JsError]) =
+  private[this] def notificationReadError(jsonRpcNotificationMessage: JsonRpcNotificationMessage,
+                                          jsError: Option[JsError]) =
     it(s"should fail to decode with error $jsError") {
       val notificationJsResult = Notification.read(jsonRpcNotificationMessage)
       jsError.fold(notificationJsResult shouldBe empty)(
@@ -225,13 +234,13 @@ class MessageSpec extends FunSpec with Matchers {
     }
 
   private[this] def notificationRead(implicit jsonRpcNotificationMessage: JsonRpcNotificationMessage,
-                               notification: Notification) =
+                                     notification: Notification) =
     it(s"should decode to $notification")(
       Notification.read(jsonRpcNotificationMessage) should be(Some(JsSuccess(notification)))
     )
 
   private[this] def notificationWrite(implicit notification: Notification,
-                                jsonRpcNotificationMessage: JsonRpcNotificationMessage) =
+                                      jsonRpcNotificationMessage: JsonRpcNotificationMessage) =
     it(s"should encode to $jsonRpcNotificationMessage")(
       Notification.write(notification) should be(jsonRpcNotificationMessage)
     )

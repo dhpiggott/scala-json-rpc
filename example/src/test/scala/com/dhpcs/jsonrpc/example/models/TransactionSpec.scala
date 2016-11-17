@@ -10,12 +10,13 @@ class TransactionSpec extends FunSpec with FormatBehaviors[Transaction] with Mat
   describe("A JsValue of the wrong type")(
     it should behave like readError(
       Json.parse("0"),
-      JsError(List(
-        (__ \ "from", List(ValidationError("error.path.missing"))),
-        (__ \ "to", List(ValidationError("error.path.missing"))),
-        (__ \ "value", List(ValidationError("error.path.missing"))),
-        (__ \ "created", List(ValidationError("error.path.missing")))
-      ))
+      JsError(
+        List(
+          (__ \ "from", List(ValidationError("error.path.missing"))),
+          (__ \ "to", List(ValidationError("error.path.missing"))),
+          (__ \ "value", List(ValidationError("error.path.missing"))),
+          (__ \ "created", List(ValidationError("error.path.missing")))
+        ))
     )
   )
 
