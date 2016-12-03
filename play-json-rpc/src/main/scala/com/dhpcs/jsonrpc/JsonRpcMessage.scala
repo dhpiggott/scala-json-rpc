@@ -151,28 +151,16 @@ trait JsonRpcMessageCompanion {
     )
 }
 
-sealed trait JsonRpcResponseError {
-
-  def code: Int
-  def message: String
-  def data: Option[JsValue]
-
-}
+sealed abstract case class JsonRpcResponseError(code: Int, message: String, data: Option[JsValue])
 
 object JsonRpcResponseError {
 
-  private case class JsonRpcResponseErrorImpl(code: Int, message: String, data: Option[JsValue])
-      extends JsonRpcResponseError
-
-  implicit final val JsonRpcResponseErrorFormat: Format[JsonRpcResponseError] = {
-    val jsonRpcResponseErrorImplFormat = Json.format[JsonRpcResponseErrorImpl]
-    Format(
-      Reads(
-        jsValue => Json.fromJson(jsValue)(jsonRpcResponseErrorImplFormat).map(_.asInstanceOf[JsonRpcResponseError])),
-      Writes(jsonRpcResponseError =>
-        Json.toJson(jsonRpcResponseError.asInstanceOf[JsonRpcResponseErrorImpl])(jsonRpcResponseErrorImplFormat))
-    )
-  }
+  implicit final val JsonRpcResponseErrorFormat: Format[JsonRpcResponseError] = (
+    (__ \ "code").format[Int] and
+      (__ \ "message").format[String] and
+      (__ \ "data").formatNullable[JsValue]
+  )((code, message, data) => new JsonRpcResponseError(code, message, data) {},
+    jsonRpcResponseError => (jsonRpcResponseError.code, jsonRpcResponseError.message, jsonRpcResponseError.data))
 
   final val ReservedErrorCodeFloor   = -32768
   final val ReservedErrorCodeCeiling = -32000
@@ -185,8 +173,53 @@ object JsonRpcResponseError {
   final val ServerErrorCodeFloor   = -32099
   final val ServerErrorCodeCeiling = -32000
 
-  private def apply(code: Int, message: String, meaning: String, error: Option[JsValue]): JsonRpcResponseError =
-    JsonRpcResponseErrorImpl(
+  def parseError(exception: Throwable): JsonRpcResponseError = rpcError(
+    ParseErrorCode,
+    "Parse error",
+    "Invalid JSON was received by the server.\nAn error occurred on the server while parsing the JSON text.",
+    Some(JsString(exception.getMessage))
+  )
+
+  def invalidRequest(errors: Seq[(JsPath, Seq[ValidationError])]): JsonRpcResponseError = rpcError(
+    InvalidRequestCode,
+    "Invalid Request",
+    "The JSON sent is not a valid Request object.",
+    Some(JsError.toFlatJson(errors))
+  )
+
+  def methodNotFound(method: String): JsonRpcResponseError = rpcError(
+    MethodNotFoundCode,
+    "Method not found",
+    "The method does not exist / is not available.",
+    Some(JsString(s"""The method "$method" is not implemented."""))
+  )
+
+  def invalidParams(errors: Seq[(JsPath, Seq[ValidationError])]): JsonRpcResponseError = rpcError(
+    InvalidParamsCode,
+    "Invalid params",
+    "Invalid method parameter(s).",
+    Some(JsError.toFlatJson(errors))
+  )
+
+  def internalError(error: Option[JsValue] = None): JsonRpcResponseError = rpcError(
+    InternalErrorCode,
+    "Invalid params",
+    "Internal JSON-RPC error.",
+    error
+  )
+
+  def serverError(code: Int, error: Option[JsValue] = None): JsonRpcResponseError = {
+    require(code >= ServerErrorCodeFloor && code <= ServerErrorCodeCeiling)
+    rpcError(
+      InternalErrorCode,
+      "Invalid params",
+      "Internal JSON-RPC error.",
+      error
+    )
+  }
+
+  private def rpcError(code: Int, message: String, meaning: String, error: Option[JsValue]): JsonRpcResponseError =
+    new JsonRpcResponseError(
       code,
       message,
       Some(
@@ -197,66 +230,14 @@ object JsonRpcResponseError {
             ): _*
         )
       )
-    )
-
-  private def apply(code: Int, message: String, data: Option[JsValue]): JsonRpcResponseError =
-    JsonRpcResponseErrorImpl(
-      code,
-      message,
-      data
-    )
-
-  def parseError(exception: Throwable): JsonRpcResponseError = JsonRpcResponseError(
-    ParseErrorCode,
-    "Parse error",
-    "Invalid JSON was received by the server.\nAn error occurred on the server while parsing the JSON text.",
-    Some(JsString(exception.getMessage))
-  )
-
-  def invalidRequest(errors: Seq[(JsPath, Seq[ValidationError])]): JsonRpcResponseError = JsonRpcResponseError(
-    InvalidRequestCode,
-    "Invalid Request",
-    "The JSON sent is not a valid Request object.",
-    Some(JsError.toFlatJson(errors))
-  )
-
-  def methodNotFound(method: String): JsonRpcResponseError = JsonRpcResponseError(
-    MethodNotFoundCode,
-    "Method not found",
-    "The method does not exist / is not available.",
-    Some(JsString(s"""The method "$method" is not implemented."""))
-  )
-
-  def invalidParams(errors: Seq[(JsPath, Seq[ValidationError])]): JsonRpcResponseError = JsonRpcResponseError(
-    InvalidParamsCode,
-    "Invalid params",
-    "Invalid method parameter(s).",
-    Some(JsError.toFlatJson(errors))
-  )
-
-  def internalError(error: Option[JsValue] = None): JsonRpcResponseError = JsonRpcResponseError(
-    InternalErrorCode,
-    "Invalid params",
-    "Internal JSON-RPC error.",
-    error
-  )
-
-  def serverError(code: Int, error: Option[JsValue] = None): JsonRpcResponseError = {
-    require(code >= ServerErrorCodeFloor && code <= ServerErrorCodeCeiling)
-    JsonRpcResponseError(
-      InternalErrorCode,
-      "Invalid params",
-      "Internal JSON-RPC error.",
-      error
-    )
-  }
+    ) {}
 
   def applicationError(code: Int, message: String, data: Option[JsValue] = None): JsonRpcResponseError = {
     require(code > ReservedErrorCodeCeiling || code < ReservedErrorCodeFloor)
-    JsonRpcResponseError(
+    new JsonRpcResponseError(
       code,
       message,
       data
-    )
+    ) {}
   }
 }
