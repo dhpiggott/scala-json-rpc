@@ -47,7 +47,7 @@ trait ResponseCompanion[A] {
   protected[this] val ResponseFormats: (Map[String, Reads[_ <: A]], Map[Class[_], (String, OWrites[_ <: A])])
 
   def read(jsonRpcResponseMessage: JsonRpcResponseMessage, method: String): JsResult[Either[ErrorResponse, _ <: A]] =
-    jsonRpcResponseMessage.eitherErrorOrResult
+    jsonRpcResponseMessage.errorOrResult
       .fold(
         error => JsSuccess(ErrorResponse(error.code, error.message, error.data)).map(Left(_)),
         result => methodReads(method).reads(result).map(Right(_))
@@ -60,7 +60,7 @@ trait ResponseCompanion[A] {
 
   def write[B <: A](response: Either[ErrorResponse, B],
                     id: Option[Either[String, BigDecimal]]): JsonRpcResponseMessage = {
-    val eitherErrorOrResult = response match {
+    val errorOrResult = response match {
       case Left(ErrorResponse(code, message, data)) =>
         Left(
           JsonRpcResponseError.applicationError(code, message, data)
@@ -71,7 +71,7 @@ trait ResponseCompanion[A] {
         val bWrites = writes.asInstanceOf[OWrites[B]]
         Right(bWrites.writes(resultResponse))
     }
-    JsonRpcResponseMessage(eitherErrorOrResult, id)
+    JsonRpcResponseMessage(errorOrResult, id)
   }
 }
 

@@ -62,7 +62,7 @@ class Client {
             jsonRpcResponseMessage.id.fold {
               sys.error(
                 s"JSON-RPC message ID missing, jsonRpcResponseMessage" +
-                  s".eitherErrorOrResult=${jsonRpcResponseMessage.eitherErrorOrResult}")
+                  s".errorOrResult=${jsonRpcResponseMessage.errorOrResult}")
             } { id =>
               id.right.toOption.fold {
                 sys.error(s"JSON-RPC message ID was not a number, id=$id")

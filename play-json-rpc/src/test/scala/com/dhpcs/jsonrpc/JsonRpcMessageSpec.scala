@@ -524,7 +524,7 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
     describe("with an error") {
       describe("and a null id") {
         implicit val jsonRpcResponseMessage = JsonRpcResponseMessage(
-          eitherErrorOrResult = Left(JsonRpcResponseError.internalError(None)),
+          errorOrResult = Left(JsonRpcResponseError.internalError(None)),
           id = None
         )
         implicit val jsonRpcResponseMessageJson = Json.parse(
@@ -540,7 +540,7 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
       }
       describe("and a string id") {
         implicit val jsonRpcResponseMessage = JsonRpcResponseMessage(
-          eitherErrorOrResult = Left(JsonRpcResponseError.internalError(None)),
+          errorOrResult = Left(JsonRpcResponseError.internalError(None)),
           id = Some(Left("one"))
         )
         implicit val jsonRpcResponseMessageJson = Json.parse(
@@ -556,7 +556,7 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
       }
       describe("and a numeric id") {
         implicit val jsonRpcResponseMessage = JsonRpcResponseMessage(
-          eitherErrorOrResult = Left(JsonRpcResponseError.internalError(None)),
+          errorOrResult = Left(JsonRpcResponseError.internalError(None)),
           id = Some(Right(1))
         )
         implicit val jsonRpcResponseMessageJson = Json.parse(
@@ -571,7 +571,7 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
         it should behave like write
         describe("with a fractional part") {
           implicit val jsonRpcResponseMessage = JsonRpcResponseMessage(
-            eitherErrorOrResult = Left(JsonRpcResponseError.internalError(None)),
+            errorOrResult = Left(JsonRpcResponseError.internalError(None)),
             id = Some(Right(1.1))
           )
           implicit val jsonRpcResponseMessageJson = Json.parse(
@@ -590,7 +590,7 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
     describe("with a result") {
       describe("and a null id") {
         implicit val jsonRpcResponseMessage = JsonRpcResponseMessage(
-          eitherErrorOrResult = Right(
+          errorOrResult = Right(
             JsObject(
               Seq(
                 "param1" -> JsString("param1"),
@@ -612,7 +612,7 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
       }
       describe("and a string id") {
         implicit val jsonRpcResponseMessage = JsonRpcResponseMessage(
-          eitherErrorOrResult = Right(
+          errorOrResult = Right(
             JsObject(
               Seq(
                 "param1" -> JsString("param1"),
@@ -634,7 +634,7 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
       }
       describe("and a numeric id") {
         implicit val jsonRpcResponseMessage = JsonRpcResponseMessage(
-          eitherErrorOrResult = Right(
+          errorOrResult = Right(
             JsObject(
               Seq(
                 "param1" -> JsString("param1"),
@@ -655,7 +655,7 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
         it should behave like write
         describe("with a fractional part") {
           implicit val jsonRpcResponseMessage = JsonRpcResponseMessage(
-            eitherErrorOrResult = Right(
+            errorOrResult = Right(
               JsObject(
                 Seq(
                   "param1" -> JsString("param1"),
@@ -708,7 +708,7 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
       implicit val jsonRpcResponseMessageBatch = JsonRpcResponseMessageBatch(
         Seq(
           JsonRpcResponseMessage(
-            eitherErrorOrResult = Right(
+            errorOrResult = Right(
               JsObject(
                 Seq(
                   "param1" -> JsString("param1"),

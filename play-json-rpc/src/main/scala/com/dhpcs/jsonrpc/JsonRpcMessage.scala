@@ -84,7 +84,7 @@ object JsonRpcRequestMessageBatch extends JsonRpcMessageCompanion {
   )
 }
 
-case class JsonRpcResponseMessage(eitherErrorOrResult: Either[JsonRpcResponseError, JsValue],
+case class JsonRpcResponseMessage(errorOrResult: Either[JsonRpcResponseError, JsValue],
                                   id: Option[Either[String, BigDecimal]])
     extends JsonRpcMessage
 
@@ -94,9 +94,9 @@ object JsonRpcResponseMessage extends JsonRpcMessageCompanion {
       __.format(eitherObjectFormat[JsonRpcResponseError, JsValue]("error", "result")) and
       // optionWithNull requires that the key is present but permits the value to be null
       (__ \ "id").format(Format.optionWithNull[Either[String, BigDecimal]])
-  )((_, eitherErrorOrResult, id) => JsonRpcResponseMessage(eitherErrorOrResult, id),
+  )((_, errorOrResult, id) => JsonRpcResponseMessage(errorOrResult, id),
     jsonRpcResponseMessage =>
-      (JsonRpcMessage.Version, jsonRpcResponseMessage.eitherErrorOrResult, jsonRpcResponseMessage.id))
+      (JsonRpcMessage.Version, jsonRpcResponseMessage.errorOrResult, jsonRpcResponseMessage.id))
 }
 
 case class JsonRpcResponseMessageBatch(messages: Seq[JsonRpcResponseMessage]) extends JsonRpcMessage {
@@ -152,6 +152,7 @@ trait JsonRpcMessageCompanion {
         case Left(leftValue)   => Json.toJson(leftValue)
       }
     )
+
 }
 
 sealed abstract case class JsonRpcResponseError(code: Int, message: String, data: Option[JsValue])

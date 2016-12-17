@@ -92,7 +92,7 @@ class MessageSpec extends FunSpec with Matchers {
       describe("with empty params")(
         it should behave like responseReadError(
           JsonRpcResponseMessage(
-            eitherErrorOrResult = Right(Json.obj()),
+            errorOrResult = Right(Json.obj()),
             id = Some(Right(1))
           ),
           "addTransaction",
