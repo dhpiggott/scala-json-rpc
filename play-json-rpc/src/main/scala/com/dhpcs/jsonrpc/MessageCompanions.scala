@@ -13,24 +13,19 @@ trait CommandCompanion[A] {
   protected[this] val CommandFormats: (Map[String, Reads[_ <: A]], Map[Class[_], (String, OWrites[_ <: A])])
 
   def read(jsonRpcRequestMessage: JsonRpcRequestMessage): Option[JsResult[_ <: A]] =
-    methodReads
-      .get(jsonRpcRequestMessage.method)
-      .map(
-        reads =>
-          jsonRpcRequestMessage.params.fold[JsResult[A]](
-            ifEmpty = JsError("command parameters must be given")
-          )(
-            _.fold(
-              _ => JsError("command parameters must be named"),
-              jsObject => reads.reads(jsObject)
-            ))
-      )
-      .map(
-        _.fold(
-          // We do this in order to drop any non-root path that may have existed in the success case.
-          invalid => JsError(invalid),
-          valid => JsSuccess(valid)
-        ))
+    for (reads <- methodReads.get(jsonRpcRequestMessage.method))
+      yield
+        jsonRpcRequestMessage.params.fold[JsResult[A]](
+          ifEmpty = JsError("command parameters must be given")
+        ) {
+          case Left(_) => JsError("command parameters must be named")
+          case Right(jsObject) =>
+            reads.reads(jsObject) match {
+              // We just do this to reset the path in the success case.
+              case JsError(invalid)    => JsError(invalid)
+              case JsSuccess(valid, _) => JsSuccess(valid)
+            }
+        }
 
   def write[B <: A](command: B, id: Option[Either[String, BigDecimal]]): JsonRpcRequestMessage = {
     val (method, writes) =
@@ -47,16 +42,15 @@ trait ResponseCompanion[A] {
   protected[this] val ResponseFormats: (Map[String, Reads[_ <: A]], Map[Class[_], (String, OWrites[_ <: A])])
 
   def read(jsonRpcResponseMessage: JsonRpcResponseMessage, method: String): JsResult[Either[ErrorResponse, _ <: A]] =
-    jsonRpcResponseMessage.errorOrResult
-      .fold(
-        error => JsSuccess(ErrorResponse(error.code, error.message, error.data)).map(Left(_)),
-        result => methodReads(method).reads(result).map(Right(_))
-      )
-      .fold(
-        // We do this in order to drop any non-root path that may have existed in the success case.
-        invalid => JsError(invalid),
-        valid => JsSuccess(valid)
-      )
+    jsonRpcResponseMessage.errorOrResult match {
+      case Left(error) => JsSuccess(Left(ErrorResponse(error.code, error.message, error.data)))
+      case Right(result) =>
+        methodReads(method).reads(result).map(Right(_)) match {
+          // We just do this to reset the path in the success case.
+          case JsError(invalid)    => JsError(invalid)
+          case JsSuccess(valid, _) => JsSuccess(valid)
+        }
+    }
 
   def write[B <: A](response: Either[ErrorResponse, B],
                     id: Option[Either[String, BigDecimal]]): JsonRpcResponseMessage = {
@@ -88,24 +82,19 @@ trait NotificationCompanion[A] {
   protected[this] val NotificationFormats: (Map[String, Reads[_ <: A]], Map[Class[_], (String, OWrites[_ <: A])])
 
   def read(jsonRpcNotificationMessage: JsonRpcNotificationMessage): Option[JsResult[_ <: A]] =
-    methodReads
-      .get(jsonRpcNotificationMessage.method)
-      .map(
-        reads =>
-          jsonRpcNotificationMessage.params.fold[JsResult[A]](
-            ifEmpty = JsError("command parameters must be given")
-          )(
-            _.fold(
-              _ => JsError("notification parameters must be named"),
-              jsObject => reads.reads(jsObject)
-            ))
-      )
-      .map(
-        _.fold(
-          // We do this in order to drop any non-root path that may have existed in the success case.
-          invalid => JsError(invalid),
-          valid => JsSuccess(valid)
-        ))
+    for (reads <- methodReads.get(jsonRpcNotificationMessage.method))
+      yield
+        jsonRpcNotificationMessage.params.fold[JsResult[A]](
+          ifEmpty = JsError("command parameters must be given")
+        ) {
+          case Left(_) => JsError("notification parameters must be named")
+          case Right(jsObject) =>
+            reads.reads(jsObject) match {
+              // We just do this to reset the path in the success case.
+              case JsError(invalid)    => JsError(invalid)
+              case JsSuccess(valid, _) => JsSuccess(valid)
+            }
+        }
 
   def write[B <: A](notification: B): JsonRpcNotificationMessage = {
     val (method, writes) =
