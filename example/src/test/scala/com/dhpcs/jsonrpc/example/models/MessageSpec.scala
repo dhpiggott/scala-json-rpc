@@ -127,7 +127,7 @@ class MessageSpec extends FunSpec with Matchers {
       it should behave like notificationReadError(
         JsonRpcNotificationMessage(
           "invalidMethod",
-          Right(Json.obj())
+          Some(Right(Json.obj()))
         ),
         None
       )
@@ -137,7 +137,7 @@ class MessageSpec extends FunSpec with Matchers {
         it should behave like notificationReadError(
           JsonRpcNotificationMessage(
             "transactionAdded",
-            Left(Json.arr())
+            Some(Left(Json.arr()))
           ),
           Some(
             JsError(
@@ -151,7 +151,7 @@ class MessageSpec extends FunSpec with Matchers {
         it should behave like notificationReadError(
           JsonRpcNotificationMessage(
             "transactionAdded",
-            Right(Json.obj())
+            Some(Right(Json.obj()))
           ),
           Some(
             JsError(
@@ -171,9 +171,11 @@ class MessageSpec extends FunSpec with Matchers {
       )
       implicit val jsonRpcNotificationMessage = JsonRpcNotificationMessage(
         "transactionAdded",
-        Right(
-          Json.obj(
-            "transaction" -> Json.parse("""{"from":0,"to":1,"value":1000000,"created":1434115187612}""")
+        Some(
+          Right(
+            Json.obj(
+              "transaction" -> Json.parse("""{"from":0,"to":1,"value":1000000,"created":1434115187612}""")
+            )
           )
         )
       )

@@ -115,14 +115,13 @@ object JsonRpcResponseMessageBatch extends JsonRpcMessageCompanion {
   )
 }
 
-case class JsonRpcNotificationMessage(method: String, params: Either[JsArray, JsObject]) extends JsonRpcMessage
+case class JsonRpcNotificationMessage(method: String, params: Option[Either[JsArray, JsObject]]) extends JsonRpcMessage
 
 object JsonRpcNotificationMessage extends JsonRpcMessageCompanion {
   implicit final val JsonRpcNotificationMessageFormat: Format[JsonRpcNotificationMessage] = (
     (__ \ "jsonrpc").format(verifying[String](_ == JsonRpcMessage.Version)) and
       (__ \ "method").format[String] and
-      // FIXME: Should be nullable, as the specification does allow both the key and value to be absent
-      (__ \ "params").format[Either[JsArray, JsObject]]
+      (__ \ "params").formatNullable[Either[JsArray, JsObject]]
   )((_, method, params) => JsonRpcNotificationMessage(method, params),
     jsonRpcNotificationMessage =>
       (JsonRpcMessage.Version, jsonRpcNotificationMessage.method, jsonRpcNotificationMessage.params))

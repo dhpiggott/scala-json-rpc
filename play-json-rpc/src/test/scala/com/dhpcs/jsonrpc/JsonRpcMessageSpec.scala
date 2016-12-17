@@ -402,28 +402,28 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
           """
             |[
             |  {
-            |    "jsonrpc":"2.0",
-            |    "method":"testMethod"
+            |    "jsonrpc":"2.0"
             |  }
             |]""".stripMargin
         ),
-        JsError(List((__(0) \ "params", List(ValidationError("error.path.missing")))))
+        JsError(List((__(0) \ "method", List(ValidationError("error.path.missing")))))
       )
     )
     describe("with a single notification") {
       implicit val jsonRpcRequestMessageBatch = JsonRpcRequestMessageBatch(
         Seq(
           Left(
-            JsonRpcNotificationMessage(
-              "testMethod",
-              Right(
-                JsObject(
-                  Seq(
-                    "param1" -> JsString("param1"),
-                    "param2" -> JsString("param2")
-                  )
-                ))
-            ))
+            JsonRpcNotificationMessage("testMethod",
+                                       Some(
+                                         Right(
+                                           JsObject(
+                                             Seq(
+                                               "param1" -> JsString("param1"),
+                                               "param2" -> JsString("param2")
+                                             )
+                                           )
+                                         )
+                                       )))
         )
       )
       implicit val jsonRpcRequestMessageBatchJson = Json.parse(
@@ -811,29 +811,32 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
         JsError(List((__ \ "params", List(ValidationError("error.expected.jsarray")))))
       )
     )
-    // FIXME: Should be nullable, as the specification does allow both the key and value to be absent
-    describe("without params")(
-      it should behave like readError[JsonRpcNotificationMessage](
-        Json.parse(
-          """
-            |{
-            |  "jsonrpc":"2.0",
-            |  "method":"testMethod"
-            |}""".stripMargin
-        ),
-        JsError(List((__ \ "params", List(ValidationError("error.path.missing")))))
+    describe("without params") {
+      implicit val jsonRpcNotificationMessage = JsonRpcNotificationMessage(
+        "testMethod",
+        None
       )
-    )
+      implicit val jsonRpcNotificationMessageJson = Json.parse(
+        """
+          |{
+          |  "jsonrpc":"2.0",
+          |  "method":"testMethod"
+          |}""".stripMargin
+      )
+      it should behave like read
+      it should behave like write
+    }
     describe("with a params array") {
       implicit val jsonRpcNotificationMessage = JsonRpcNotificationMessage(
         "testMethod",
-        Left(
-          JsArray(
-            Seq(
-              JsString("param1"),
-              JsString("param2")
-            )
-          ))
+        Some(
+          Left(
+            JsArray(
+              Seq(
+                JsString("param1"),
+                JsString("param2")
+              )
+            )))
       )
       implicit val jsonRpcNotificationMessageJson = Json.parse(
         """
@@ -849,13 +852,14 @@ class JsonRpcMessageSpec extends FunSpec with FormatBehaviors[JsonRpcMessage] wi
     describe("with a params object") {
       implicit val jsonRpcNotificationMessage = JsonRpcNotificationMessage(
         "testMethod",
-        Right(
-          JsObject(
-            Seq(
-              "param1" -> JsString("param1"),
-              "param2" -> JsString("param2")
-            )
-          ))
+        Some(
+          Right(
+            JsObject(
+              Seq(
+                "param1" -> JsString("param1"),
+                "param2" -> JsString("param2")
+              )
+            )))
       )
       implicit val jsonRpcNotificationMessageJson = Json.parse(
         """

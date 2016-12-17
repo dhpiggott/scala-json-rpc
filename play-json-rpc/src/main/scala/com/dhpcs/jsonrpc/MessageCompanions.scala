@@ -92,10 +92,13 @@ trait NotificationCompanion[A] {
       .get(jsonRpcNotificationMessage.method)
       .map(
         reads =>
-          jsonRpcNotificationMessage.params.fold(
-            _ => JsError("notification parameters must be named"),
-            jsObject => reads.reads(jsObject)
-        )
+          jsonRpcNotificationMessage.params.fold[JsResult[A]](
+            ifEmpty = JsError("command parameters must be given")
+          )(
+            _.fold(
+              _ => JsError("notification parameters must be named"),
+              jsObject => reads.reads(jsObject)
+            ))
       )
       .map(
         _.fold(
@@ -108,7 +111,7 @@ trait NotificationCompanion[A] {
     val (method, writes) =
       classWrites.getOrElse(notification.getClass, sys.error(s"No format found for ${notification.getClass}"))
     val bWrites = writes.asInstanceOf[OWrites[B]]
-    JsonRpcNotificationMessage(method, Right(bWrites.writes(notification)))
+    JsonRpcNotificationMessage(method, Some(Right(bWrites.writes(notification))))
   }
 }
 
