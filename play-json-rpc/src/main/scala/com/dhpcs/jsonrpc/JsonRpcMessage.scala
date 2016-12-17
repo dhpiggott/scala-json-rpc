@@ -15,7 +15,7 @@ object JsonRpcMessage {
   final val Version = "2.0"
 
   implicit final val JsonRpcMessageFormat: Format[JsonRpcMessage] = new Format[JsonRpcMessage] {
-    override def reads(json: JsValue) =
+    override def reads(json: JsValue): JsResult[JsonRpcMessage] =
       (
         __.read(JsonRpcRequestMessage.JsonRpcRequestMessageFormat).map(m => m: JsonRpcMessage) orElse
           __.read(JsonRpcRequestMessageBatch.JsonRpcRequestMessageBatchFormat).map(m => m: JsonRpcMessage) orElse
@@ -27,7 +27,7 @@ object JsonRpcMessage {
           JsError("not a valid request, request batch, response, response batch or notification message")
         )
 
-    override def writes(jsonRpcMessage: JsonRpcMessage) = jsonRpcMessage match {
+    override def writes(jsonRpcMessage: JsonRpcMessage): JsValue = jsonRpcMessage match {
       case jsonRpcRequestMessage: JsonRpcRequestMessage =>
         Json.toJson(jsonRpcRequestMessage)(JsonRpcRequestMessage.JsonRpcRequestMessageFormat)
       case jsonRpcRequestMessageBatch: JsonRpcRequestMessageBatch =>
@@ -166,16 +166,16 @@ object JsonRpcResponseError {
   )((code, message, data) => new JsonRpcResponseError(code, message, data) {},
     jsonRpcResponseError => (jsonRpcResponseError.code, jsonRpcResponseError.message, jsonRpcResponseError.data))
 
-  final val ReservedErrorCodeFloor   = -32768
-  final val ReservedErrorCodeCeiling = -32000
+  final val ReservedErrorCodeFloor: Int   = -32768
+  final val ReservedErrorCodeCeiling: Int = -32000
 
-  final val ParseErrorCode         = -32700
-  final val InvalidRequestCode     = -32600
-  final val MethodNotFoundCode     = -32601
-  final val InvalidParamsCode      = -32602
-  final val InternalErrorCode      = -32603
-  final val ServerErrorCodeFloor   = -32099
-  final val ServerErrorCodeCeiling = -32000
+  final val ParseErrorCode: Int         = -32700
+  final val InvalidRequestCode: Int     = -32600
+  final val MethodNotFoundCode: Int     = -32601
+  final val InvalidParamsCode: Int      = -32602
+  final val InternalErrorCode: Int      = -32603
+  final val ServerErrorCodeFloor: Int   = -32099
+  final val ServerErrorCodeCeiling: Int = -32000
 
   def parseError(exception: Throwable): JsonRpcResponseError = rpcError(
     ParseErrorCode,

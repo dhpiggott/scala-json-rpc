@@ -118,8 +118,8 @@ trait NotificationCompanion[A] {
 object Message {
 
   implicit class MessageFormat[A: ClassTag](methodAndFormat: (String, Format[A])) {
-    val classTag         = implicitly[ClassTag[A]]
-    val (method, format) = methodAndFormat
+    private[Message] val classTag         = implicitly[ClassTag[A]]
+    private[Message] val (method, format) = methodAndFormat
   }
 
   object MessageFormats {
@@ -151,4 +151,5 @@ object Message {
     _.validate[JsObject].map(_ => o),
     _ => Json.obj()
   )
+
 }
