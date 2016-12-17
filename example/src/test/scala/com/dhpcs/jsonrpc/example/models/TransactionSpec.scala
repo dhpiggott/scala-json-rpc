@@ -23,10 +23,10 @@ class TransactionSpec extends FunSpec with FormatBehaviors[Transaction] with Mat
   describe("A Transaction") {
     describe("without a description or metadata") {
       implicit val transaction = Transaction(
-        0,
-        1,
-        BigDecimal(1000000),
-        1434115187612L
+        from = 0,
+        to = 1,
+        value = BigDecimal(1000000),
+        created = 1434115187612L
       )
       implicit val transactionJson = Json.parse(
         """
@@ -42,12 +42,12 @@ class TransactionSpec extends FunSpec with FormatBehaviors[Transaction] with Mat
     }
     describe("with a description and metadata") {
       implicit val transaction = Transaction(
-        0,
-        1,
-        BigDecimal(1000000),
-        1434115187612L,
-        Some("Property purchase"),
-        Some(
+        from = 0,
+        to = 1,
+        value = BigDecimal(1000000),
+        created = 1434115187612L,
+        description = Some("Property purchase"),
+        metadata = Some(
           Json.obj(
             "property" -> "The TARDIS"
           )

@@ -14,9 +14,9 @@ class MessageSpec extends FunSpec with Matchers {
     describe("with an invalid method")(
       it should behave like commandReadError(
         JsonRpcRequestMessage(
-          "invalidMethod",
-          Some(Right(Json.obj())),
-          Some(Right(1))
+          method = "invalidMethod",
+          params = Some(Right(Json.obj())),
+          id = Some(Right(1))
         ),
         None
       )
@@ -25,9 +25,9 @@ class MessageSpec extends FunSpec with Matchers {
       describe("with params of the wrong type")(
         it should behave like commandReadError(
           JsonRpcRequestMessage(
-            "addTransaction",
-            Some(Left(Json.arr())),
-            Some(Right(1))
+            method = "addTransaction",
+            params = Some(Left(Json.arr())),
+            id = Some(Right(1))
           ),
           Some(
             JsError(
@@ -40,9 +40,9 @@ class MessageSpec extends FunSpec with Matchers {
       describe("with empty params")(
         it should behave like commandReadError(
           JsonRpcRequestMessage(
-            "addTransaction",
-            Some(Right(Json.obj())),
-            Some(Right(1))
+            method = "addTransaction",
+            params = Some(Right(Json.obj())),
+            id = Some(Right(1))
           ),
           Some(
             JsError(
@@ -55,11 +55,11 @@ class MessageSpec extends FunSpec with Matchers {
         )
       )
       implicit val addTransactionCommand = AddTransactionCommand(
-        0,
-        1,
-        BigDecimal(1000000),
-        Some("Property purchase"),
-        Some(
+        from = 0,
+        to = 1,
+        value = BigDecimal(1000000),
+        description = Some("Property purchase"),
+        metadata = Some(
           Json.obj(
             "property" -> "The TARDIS"
           )
@@ -92,8 +92,8 @@ class MessageSpec extends FunSpec with Matchers {
       describe("with empty params")(
         it should behave like responseReadError(
           JsonRpcResponseMessage(
-            Right(Json.obj()),
-            Some(Right(0))
+            eitherErrorOrResult = Right(Json.obj()),
+            id = Some(Right(1))
           ),
           "addTransaction",
           JsError(
@@ -106,7 +106,7 @@ class MessageSpec extends FunSpec with Matchers {
     )
     implicit val addTransactionResponse = Right(
       AddTransactionResponse(
-        1434115187612L
+        created = 1434115187612L
       ))
     implicit val id = Right(BigDecimal(1))
     implicit val jsonRpcResponseMessage = JsonRpcResponseMessage(
@@ -126,18 +126,18 @@ class MessageSpec extends FunSpec with Matchers {
     describe("with an invalid method")(
       it should behave like notificationReadError(
         JsonRpcNotificationMessage(
-          "invalidMethod",
-          Some(Right(Json.obj()))
+          method = "invalidMethod",
+          params = Some(Right(Json.obj()))
         ),
-        None
+        jsError = None
       )
     )
     describe("of type TransactionAddedNotification") {
       describe("with params of the wrong type")(
         it should behave like notificationReadError(
           JsonRpcNotificationMessage(
-            "transactionAdded",
-            Some(Left(Json.arr()))
+            method = "transactionAdded",
+            params = Some(Left(Json.arr()))
           ),
           Some(
             JsError(
@@ -150,8 +150,8 @@ class MessageSpec extends FunSpec with Matchers {
       describe("with empty params") {
         it should behave like notificationReadError(
           JsonRpcNotificationMessage(
-            "transactionAdded",
-            Some(Right(Json.obj()))
+            method = "transactionAdded",
+            params = Some(Right(Json.obj()))
           ),
           Some(
             JsError(
@@ -163,15 +163,15 @@ class MessageSpec extends FunSpec with Matchers {
       }
       implicit val clientJoinedZoneNotification = TransactionAddedNotification(
         Transaction(
-          0,
-          1,
-          BigDecimal(1000000),
-          1434115187612L
+          from = 0,
+          to = 1,
+          value = BigDecimal(1000000),
+          created = 1434115187612L
         )
       )
       implicit val jsonRpcNotificationMessage = JsonRpcNotificationMessage(
-        "transactionAdded",
-        Some(
+        method = "transactionAdded",
+        params = Some(
           Right(
             Json.obj(
               "transaction" -> Json.parse("""{"from":0,"to":1,"value":1000000,"created":1434115187612}""")

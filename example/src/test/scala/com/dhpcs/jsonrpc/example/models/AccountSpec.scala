@@ -33,9 +33,9 @@ class AccountSpec extends FunSpec with FormatBehaviors[Account] with Matchers {
     }
     describe("with a name and metadata") {
       implicit val account = Account(
-        0,
-        Some("Dave's account"),
-        Some(
+        id = 0,
+        name = Some("Dave's account"),
+        metadata = Some(
           Json.obj(
             "hidden" -> true
           )
