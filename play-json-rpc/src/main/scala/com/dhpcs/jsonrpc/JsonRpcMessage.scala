@@ -51,7 +51,9 @@ object JsonRpcRequestMessage extends JsonRpcMessageCompanion {
   implicit final val JsonRpcRequestMessageFormat: Format[JsonRpcRequestMessage] = (
     (__ \ "jsonrpc").format(verifying[String](_ == JsonRpcMessage.Version)) and
       (__ \ "method").format[String] and
-      (__ \ "params").format[Option[Either[JsArray, JsObject]]] and
+      // formatNullable allows the key and value to be completely absent
+      (__ \ "params").formatNullable[Either[JsArray, JsObject]] and
+      // optionWithNull requires that the key is present but permits the value to be null
       (__ \ "id").format(Format.optionWithNull[Either[String, BigDecimal]])
   )((_, method, params, id) => JsonRpcRequestMessage(method, params, id),
     jsonRpcRequestMessage =>
@@ -90,6 +92,7 @@ object JsonRpcResponseMessage extends JsonRpcMessageCompanion {
   implicit final val JsonRpcResponseMessageFormat: Format[JsonRpcResponseMessage] = (
     (__ \ "jsonrpc").format(verifying[String](_ == JsonRpcMessage.Version)) and
       __.format(eitherObjectFormat[JsonRpcResponseError, JsValue]("error", "result")) and
+      // optionWithNull requires that the key is present but permits the value to be null
       (__ \ "id").format(Format.optionWithNull[Either[String, BigDecimal]])
   )((_, eitherErrorOrResult, id) => JsonRpcResponseMessage(eitherErrorOrResult, id),
     jsonRpcResponseMessage =>
@@ -118,6 +121,7 @@ object JsonRpcNotificationMessage extends JsonRpcMessageCompanion {
   implicit final val JsonRpcNotificationMessageFormat: Format[JsonRpcNotificationMessage] = (
     (__ \ "jsonrpc").format(verifying[String](_ == JsonRpcMessage.Version)) and
       (__ \ "method").format[String] and
+      // FIXME: Should be nullable, as the specification does allow both the key and value to be absent
       (__ \ "params").format[Either[JsArray, JsObject]]
   )((_, method, params) => JsonRpcNotificationMessage(method, params),
     jsonRpcNotificationMessage =>
@@ -158,6 +162,7 @@ object JsonRpcResponseError {
   implicit final val JsonRpcResponseErrorFormat: Format[JsonRpcResponseError] = (
     (__ \ "code").format[Int] and
       (__ \ "message").format[String] and
+      // formatNullable allows the key and value to be completely absent
       (__ \ "data").formatNullable[JsValue]
   )((code, message, data) => new JsonRpcResponseError(code, message, data) {},
     jsonRpcResponseError => (jsonRpcResponseError.code, jsonRpcResponseError.message, jsonRpcResponseError.data))
