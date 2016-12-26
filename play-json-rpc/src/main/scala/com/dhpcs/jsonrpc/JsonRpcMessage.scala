@@ -55,9 +55,11 @@ object JsonRpcRequestMessage extends JsonRpcMessageCompanion {
       (__ \ "params").formatNullable[Either[JsArray, JsObject]] and
       // optionWithNull requires that the key is present but permits the value to be null
       (__ \ "id").format(Format.optionWithNull[Either[String, BigDecimal]])
-  )((_, method, params, id) => JsonRpcRequestMessage(method, params, id),
+  )(
+    (_, method, params, id) => JsonRpcRequestMessage(method, params, id),
     jsonRpcRequestMessage =>
-      (JsonRpcMessage.Version, jsonRpcRequestMessage.method, jsonRpcRequestMessage.params, jsonRpcRequestMessage.id))
+      (JsonRpcMessage.Version, jsonRpcRequestMessage.method, jsonRpcRequestMessage.params, jsonRpcRequestMessage.id)
+  )
 }
 
 case class JsonRpcRequestMessageBatch(messages: Seq[Either[JsonRpcNotificationMessage, JsonRpcRequestMessage]])
@@ -94,9 +96,10 @@ object JsonRpcResponseMessage extends JsonRpcMessageCompanion {
       __.format(eitherObjectFormat[JsonRpcResponseError, JsValue]("error", "result")) and
       // optionWithNull requires that the key is present but permits the value to be null
       (__ \ "id").format(Format.optionWithNull[Either[String, BigDecimal]])
-  )((_, errorOrResult, id) => JsonRpcResponseMessage(errorOrResult, id),
-    jsonRpcResponseMessage =>
-      (JsonRpcMessage.Version, jsonRpcResponseMessage.errorOrResult, jsonRpcResponseMessage.id))
+  )(
+    (_, errorOrResult, id) => JsonRpcResponseMessage(errorOrResult, id),
+    jsonRpcResponseMessage => (JsonRpcMessage.Version, jsonRpcResponseMessage.errorOrResult, jsonRpcResponseMessage.id)
+  )
 }
 
 case class JsonRpcResponseMessageBatch(messages: Seq[JsonRpcResponseMessage]) extends JsonRpcMessage {
@@ -122,9 +125,11 @@ object JsonRpcNotificationMessage extends JsonRpcMessageCompanion {
     (__ \ "jsonrpc").format(verifying[String](_ == JsonRpcMessage.Version)) and
       (__ \ "method").format[String] and
       (__ \ "params").formatNullable[Either[JsArray, JsObject]]
-  )((_, method, params) => JsonRpcNotificationMessage(method, params),
+  )(
+    (_, method, params) => JsonRpcNotificationMessage(method, params),
     jsonRpcNotificationMessage =>
-      (JsonRpcMessage.Version, jsonRpcNotificationMessage.method, jsonRpcNotificationMessage.params))
+      (JsonRpcMessage.Version, jsonRpcNotificationMessage.method, jsonRpcNotificationMessage.params)
+  )
 }
 
 trait JsonRpcMessageCompanion {
@@ -164,8 +169,10 @@ object JsonRpcResponseError {
       (__ \ "message").format[String] and
       // formatNullable allows the key and value to be completely absent
       (__ \ "data").formatNullable[JsValue]
-  )((code, message, data) => new JsonRpcResponseError(code, message, data) {},
-    jsonRpcResponseError => (jsonRpcResponseError.code, jsonRpcResponseError.message, jsonRpcResponseError.data))
+  )(
+    (code, message, data) => new JsonRpcResponseError(code, message, data) {},
+    jsonRpcResponseError => (jsonRpcResponseError.code, jsonRpcResponseError.message, jsonRpcResponseError.data)
+  )
 
   final val ReservedErrorCodeFloor: Int   = -32768
   final val ReservedErrorCodeCeiling: Int = -32000

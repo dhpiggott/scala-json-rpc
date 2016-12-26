@@ -26,7 +26,8 @@ object AddTransactionCommand {
       (JsPath \ "value").format(min[BigDecimal](0)) and
       (JsPath \ "description").formatNullable[String] and
       (JsPath \ "metadata").formatNullable[JsObject]
-  )((from, to, value, description, metadata) =>
+  )(
+    (from, to, value, description, metadata) =>
       AddTransactionCommand(
         from,
         to,
@@ -39,7 +40,8 @@ object AddTransactionCommand {
        addTransactionCommand.to,
        addTransactionCommand.value,
        addTransactionCommand.description,
-       addTransactionCommand.metadata))
+       addTransactionCommand.metadata)
+  )
 }
 
 object Command extends CommandCompanion[Command] {

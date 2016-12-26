@@ -1,5 +1,3 @@
-scalafmtConfig in ThisBuild := Some(file(".scalafmt.conf"))
-
 lazy val commonSettings = Seq(
     scalaVersion := "2.11.8",
     scalacOptions in Compile ++= Seq(
@@ -22,7 +20,7 @@ lazy val commonSettings = Seq(
       "-Ywarn-unused-import"
     )
   ) ++
-    addCommandAlias("validate", ";scalafmtTest; test:scalafmtTest; coverage; test; coverageReport") ++
+    addCommandAlias("validate", ";scalafmtTest; coverage; test; coverageReport") ++
     addCommandAlias("validateAggregate", ";coverageAggregate")
 
 lazy val publishSettings = Seq(

@@ -79,14 +79,16 @@ class Client {
                         jsonRpcResponseMessage,
                         pendingRequest.requestMessage.method
                       )
-                      .fold({ errors =>
-                        sys.error(s"Invalid Response: $errors")
-                      }, {
-                        case Left(errorResponse) =>
-                          pendingRequest.callback.onErrorReceived(errorResponse)
-                        case Right(resultResponse) =>
-                          pendingRequest.callback.onResultReceived(resultResponse)
-                      })
+                      .fold(
+                        { errors =>
+                          sys.error(s"Invalid Response: $errors")
+                        }, {
+                          case Left(errorResponse) =>
+                            pendingRequest.callback.onErrorReceived(errorResponse)
+                          case Right(resultResponse) =>
+                            pendingRequest.callback.onResultReceived(resultResponse)
+                        }
+                      )
                   }
               }
             }
