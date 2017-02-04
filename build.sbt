@@ -50,7 +50,6 @@ lazy val publishSettings = Seq(
 )
 
 lazy val noopPublishSettings = Seq(
-  publishArtifact := false,
   publish := {},
   publishLocal := {}
 )
