@@ -138,7 +138,7 @@ object Message {
 
   def objectFormat[A](o: A): OFormat[A] = OFormat(
     _.validate[JsObject].map(_ => o),
-    _ => Json.obj()
+    (_: A) => Json.obj()
   )
 
 }

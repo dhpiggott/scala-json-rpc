@@ -196,7 +196,7 @@ object JsonRpcResponseError {
     InvalidRequestCode,
     "Invalid Request",
     "The JSON sent is not a valid Request object.",
-    Some(JsError.toFlatJson(errors))
+    Some(JsError.toJson(errors))
   )
 
   def methodNotFound(method: String): JsonRpcResponseError = rpcError(
@@ -210,7 +210,7 @@ object JsonRpcResponseError {
     InvalidParamsCode,
     "Invalid params",
     "Invalid method parameter(s).",
-    Some(JsError.toFlatJson(errors))
+    Some(JsError.toJson(errors))
   )
 
   def internalError(error: Option[JsValue] = None): JsonRpcResponseError = rpcError(

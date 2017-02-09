@@ -54,7 +54,7 @@ lazy val noopPublishSettings = Seq(
   publishLocal := {}
 )
 
-lazy val playJson = "com.typesafe.play" %% "play-json" % "2.3.10"
+lazy val playJson = "com.typesafe.play" %% "play-json" % "2.5.12"
 
 lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.0.1"
 
