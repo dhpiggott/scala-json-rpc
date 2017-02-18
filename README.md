@@ -12,7 +12,7 @@ SBT dependency
 ```scala
 resolvers += Resolver.bintrayRepo("dhpcs", "maven")
 
-libraryDependencies += "com.dhpcs" %% "play-json-rpc" % "1.4.0"
+libraryDependencies += "com.dhpcs" %% "play-json-rpc" % "1.4.1"
 ```
 
 
@@ -21,7 +21,7 @@ Gradle dependency
 
 ```groovy
 dependencies {
-    compile 'com.dhpcs:play-json-rpc_2.11:1.4.0'
+    compile 'com.dhpcs:play-json-rpc_2.11:1.4.1'
 }
 ```
 
@@ -491,9 +491,9 @@ dependencies to be like this:
 
 ```scala
 libraryDependencies ++= Seq(
-  "com.dhpcs" %% "play-json-rpc" % "1.4.0",
+  "com.dhpcs" %% "play-json-rpc" % "1.4.1",
   "org.scalatest" %% "scalatest" % "3.0.1" % Test,
-  "com.dhpcs" %% "play-json-rpc-testkit" % "1.4.0" % Test
+  "com.dhpcs" %% "play-json-rpc-testkit" % "1.4.1" % Test
 )
 ```
 
