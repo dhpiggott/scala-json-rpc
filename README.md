@@ -1,6 +1,8 @@
 play-json-rpc
 =============
 
+[![Build status](https://travis-ci.org/dhpcs/play-json-rpc.svg?branch=master)](https://travis-ci.org/dhpcs/play-json-rpc)
+
 A Scala library providing implicit [play-json Formats](https://www.playframework.com/documentation/2.5.x/ScalaJson) for
 [JSON-RPC 2.0](http://www.jsonrpc.org/specification) messages, built on top of the Play Framework's standalone
 `play-json` library.
