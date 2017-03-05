@@ -26,7 +26,7 @@ Resolution and library dependency
 ```scala
 resolvers += Resolver.bintrayRepo("dhpcs", "maven")
 
-libraryDependencies += "com.dhpcs" %% "scala-json-rpc" % "1.4.1"
+libraryDependencies += "com.dhpcs" %% "scala-json-rpc" % "1.5.0"
 ```
 
 
@@ -71,7 +71,7 @@ useful when writing tests in dependent projects. Example use can be seen in the 
 ### Testkit resolution and library dependency
 
 ```scala
-libraryDependencies += "com.dhpcs" %% "play-json-testkit" % "1.4.1" % Test
+libraryDependencies += "com.dhpcs" %% "play-json-testkit" % "1.5.0" % Test
 ```
 
 
