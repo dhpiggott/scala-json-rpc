@@ -24,6 +24,8 @@ lazy val commonSettings = Seq(
   addCommandAlias("validate", ";scalafmtTest; coverage; test; coverageReport") ++
   addCommandAlias("validateAggregate", ";coverageAggregate")
 
+releaseCrossBuild := true
+
 lazy val publishSettings = Seq(
   homepage := Some(url("https://github.com/dhpcs/scala-json-rpc/")),
   startYear := Some(2015),
