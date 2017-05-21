@@ -55,7 +55,7 @@ lazy val noopPublishSettings = Seq(
   publish := {}
 )
 
-lazy val `scala-json-rpc` = project
+lazy val scalaJsonRpc = project
   .in(file("scala-json-rpc"))
   .settings(commonSettings)
   .settings(publishSettings)
@@ -68,14 +68,14 @@ lazy val `scala-json-rpc` = project
       "org.scalatest"     %% "scalatest" % "3.0.3" % Test
     ))
 
-lazy val `play-json-rpc` = project
+lazy val playJsonRpc = project
   .in(file("play-json-rpc"))
   .settings(commonSettings)
   .settings(publishSettings)
   .settings(
     name := "play-json-rpc"
   )
-  .dependsOn(`scala-json-rpc`)
+  .dependsOn(scalaJsonRpc)
 
 lazy val root = project
   .in(file("."))
@@ -85,6 +85,6 @@ lazy val root = project
     name := "scala-json-rpc-root"
   )
   .aggregate(
-    `scala-json-rpc`,
-    `play-json-rpc`
+    scalaJsonRpc,
+    playJsonRpc
   )
