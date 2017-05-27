@@ -5,7 +5,7 @@ import sbtrelease.ReleasePlugin.autoImport.releaseCrossBuild
 
 object CommonProjectSettingsPlugin extends AutoPlugin {
 
-  private[this] val scalaSettings = Seq(
+  private val scalaSettings = Seq(
     scalaVersion := "2.12.2",
     crossScalaVersions := Seq("2.11.11", "2.12.2"),
     // See https://tpolecat.github.io/2017/04/25/scalac-flags.html for explanations. 2.11 doesn't support all of these,
@@ -57,7 +57,7 @@ object CommonProjectSettingsPlugin extends AutoPlugin {
     })
   )
 
-  private[this] val publishSettings = Seq(
+  private val publishSettings = Seq(
     homepage := Some(url("https://github.com/dhpcs/scala-json-rpc/")),
     startYear := Some(2015),
     description := "A Scala library providing types and JSON format typeclass instances for JSON-RPC 2.0 messages along with support for marshalling application level commands, responses and notifications via JSON-RPC 2.0.",
