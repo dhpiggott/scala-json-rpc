@@ -1,6 +1,7 @@
 import bintray.BintrayPlugin.autoImport.{bintrayOrganization, bintrayPackageLabels}
 import sbt.Keys._
 import sbt._
+import sbtrelease.ReleasePlugin
 import sbtrelease.ReleasePlugin.autoImport.releaseCrossBuild
 
 object CommonProjectSettingsPlugin extends AutoPlugin {
@@ -88,6 +89,8 @@ object CommonProjectSettingsPlugin extends AutoPlugin {
   )
 
   override def trigger: PluginTrigger = allRequirements
+
+  override def requires: Plugins = ReleasePlugin
 
   override def projectSettings: Seq[Setting[_]] =
     scalaSettings ++
