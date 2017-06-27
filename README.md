@@ -27,7 +27,7 @@ Resolution and library dependency
 ```scala
 resolvers += Resolver.bintrayRepo("dhpcs", "maven")
 
-libraryDependencies += "com.dhpcs" %% "scala-json-rpc" % "1.5.0"
+libraryDependencies += "com.dhpcs" %% "scala-json-rpc" % "2.0.0"
 ```
 
 
@@ -35,7 +35,7 @@ Marshalling application level types
 -----------------------------------
 
 The `CommandCompanion`, `ResponseCompanion` and `NotificationCompanion` bases defined in
-[MessageCompanions.scala](../v1.5.0/scala-json-rpc/src/main/scala/com/dhpcs/jsonrpc/MessageCompanions.scala) provide
+[MessageCompanions.scala](../v2.0.0/scala-json-rpc/src/main/scala/com/dhpcs/jsonrpc/MessageCompanions.scala) provide
 readers and writers for hierarchies of application level types. Example use can be seen in
 [MessageCompanionsSpec.scala](scala-json-rpc/src/test/scala/com/dhpcs/jsonrpc/MessageCompanionsSpec.scala). 
 
@@ -44,9 +44,9 @@ JSON-RPC message types
 ----------------------
 
 The JSON-RPC message types are represented by an ADT defined in 
-[JsonRpcMessage.scala](../v1.5.0/scala-json-rpc/src/main/scala/com/dhpcs/jsonrpc/JsonRpcMessage.scala). The
+[JsonRpcMessage.scala](../v2.0.0/scala-json-rpc/src/main/scala/com/dhpcs/jsonrpc/JsonRpcMessage.scala). The
 JsonRpcMessage
-[JsonRpcMessageSpec.scala](../v1.5.0/scala-json-rpc/src/test/scala/com/dhpcs/jsonrpc/JsonRpcMessageSpec.scala) shows
+[JsonRpcMessageSpec.scala](../v2.0.0/scala-json-rpc/src/test/scala/com/dhpcs/jsonrpc/JsonRpcMessageSpec.scala) shows
 how they appear when marshalled to and from JSON.
 
 Note that typical usage does _not_ involve the direct construction of the low level JSON-RPC message types. The
@@ -60,16 +60,6 @@ the appropriate application specific companion to unmarshall the content to one 
 Similarly, when marshalling your application protocol's types, you'll first pass them to the appropriate application
 specific companion and then format the result of that as JSON, implicitly making use of the relevant provided typeclass
 instance.
-
-
-Versioning
-----------
-
-All versions greater than 1.0.0 implement the JSON-RPC 2.0 specification.
-
-Patch version increments between versions 1.x.y to 1.5.0 are source compatible with the preceding minor version (e.g.
-1.4.1 is source compatible with 1.4.0). However, minor version increments are not generally source compatible with the
-preceding minor version (i.e. 1.5.0 is not source compatible with 1.4.0).
 
 
 License
