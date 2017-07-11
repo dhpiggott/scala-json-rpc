@@ -37,7 +37,7 @@ Marshalling application level types
 The `CommandCompanion`, `ResponseCompanion` and `NotificationCompanion` bases defined in
 [MessageCompanions.scala](../v2.0.0/scala-json-rpc/src/main/scala/com/dhpcs/jsonrpc/MessageCompanions.scala) provide
 readers and writers for hierarchies of application level types. Example use can be seen in
-[MessageCompanionsSpec.scala](scala-json-rpc/src/test/scala/com/dhpcs/jsonrpc/MessageCompanionsSpec.scala). 
+[MessageCompanionsSpec.scala](../v2.0.0/scala-json-rpc/src/test/scala/com/dhpcs/jsonrpc/MessageCompanionsSpec.scala).
 
 
 JSON-RPC message types
