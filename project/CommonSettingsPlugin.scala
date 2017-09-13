@@ -14,16 +14,19 @@ object CommonSettingsPlugin extends AutoPlugin {
     )
 
   override def buildSettings: Seq[Setting[_]] =
-    resolverSettings ++
-      scalaSettings ++
-      testSettings ++
-      publishSettings
+    resolverBuildSettings ++
+      scalaBuildSettings ++
+      testBuildSettings ++
+      publishBuildSettings
 
-  private lazy val resolverSettings = Seq(
+  override def projectSettings: Seq[Setting[_]] =
+    publishProjectSettings
+
+  private lazy val resolverBuildSettings = Seq(
     conflictManager := ConflictManager.strict
   )
 
-  private lazy val scalaSettings = Seq(
+  private lazy val scalaBuildSettings = Seq(
     scalaVersion := "2.12.3",
     crossScalaVersions := Seq("2.11.11", "2.12.3"),
     // See https://tpolecat.github.io/2017/04/25/scalac-flags.html for explanations. 2.11 doesn't support all of these,
@@ -84,11 +87,11 @@ object CommonSettingsPlugin extends AutoPlugin {
     })
   )
 
-  private lazy val testSettings = Seq(
+  private lazy val testBuildSettings = Seq(
     testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oDF")
   )
 
-  private lazy val publishSettings = Seq(
+  private lazy val publishBuildSettings = Seq(
     homepage := Some(url("https://github.com/dhpcs/scala-json-rpc/")),
     startYear := Some(2015),
     description := "A Scala library providing types and JSON format typeclass instances for JSON-RPC 2.0 messages along with support for marshalling application level commands, responses and notifications via JSON-RPC 2.0.",
@@ -101,14 +104,17 @@ object CommonSettingsPlugin extends AutoPlugin {
         id = "dhpiggott",
         name = "David Piggott",
         email = "david@piggott.me.uk",
-        url = url("https://dhpiggott.net/")
+        url = url("https://www.dhpiggott.net/")
       )),
     scmInfo := Some(
       ScmInfo(
         browseUrl = url("https://github.com/dhpcs/scala-json-rpc/"),
         connection = "scm:git:https://github.com/dhpcs/scala-json-rpc.git",
         devConnection = Some("scm:git:git@github.com:dhpcs/scala-json-rpc.git")
-      )),
+      ))
+  )
+
+  private lazy val publishProjectSettings = Seq(
     bintrayOrganization := Some("dhpcs"),
     bintrayPackageLabels := Seq("scala", "json-rpc"),
     releaseCrossBuild := true
