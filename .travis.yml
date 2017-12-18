@@ -20,10 +20,8 @@ jobs:
       script: |
         git fetch --unshallow && # So that sbt-dynver derives the version correctly
           sbt ";scalaJsonRpc/releaseEarly"
-before_cache:
-  - find $HOME/.ivy2/cache -name "ivydata-*.properties" -print -delete
-  - find $HOME/.sbt -name "*.lock" -print -delete
 cache:
   directories:
     - $HOME/.ivy2/cache
     - $HOME/.sbt
+    - $HOME/.coursier
